@@ -651,6 +651,9 @@
             opacity: 0;
             transform: scale(0.985);
             transition: opacity 140ms ease, transform 140ms ease;
+            pointer-events: none;
+            user-select: none;
+            -webkit-user-drag: none;
         }
 
         .option-logo.is-visible {
@@ -672,6 +675,7 @@
             font-weight: 700;
             letter-spacing: 0.06em;
             background: #ffffff;
+            pointer-events: none;
         }
 
         .option-name {
@@ -1729,7 +1733,8 @@
                 activeEffectPlayers: {}
             },
             preloadedRun: {
-                questions: null
+                questions: null,
+                prefetchedQuestionKeys: new Set()
             },
 
 
@@ -2206,6 +2211,11 @@
                 return preparedQuestions;
             },
 
+            getQuestionPrefetchKey(question) {
+                if (!question) return '';
+                return String(question.correct || question.question || '').trim();
+            },
+
             warmEntryQuestionAssets(force = false) {
                 const preparedQuestions = this.prepareRunQuestions(force);
                 this.prefetchQuestionAssetsFromDeck(preparedQuestions, 0, 3);
@@ -2339,8 +2349,23 @@
                 );
 
                 for (let index = safeStart; index < safeEnd; index += 1) {
-                    void this.preloadQuestionAssets(questionDeck[index]);
+                    const question = questionDeck[index];
+                    const questionKey = this.getQuestionPrefetchKey(question);
+                    if (questionKey && this.preloadedRun.prefetchedQuestionKeys.has(questionKey)) {
+                        continue;
+                    }
+                    if (questionKey) {
+                        this.preloadedRun.prefetchedQuestionKeys.add(questionKey);
+                    }
+                    void this.preloadQuestionAssets(question);
                 }
+            },
+
+            scheduleUpcomingPrefetch(loadToken) {
+                requestAnimationFrame(() => {
+                    if (loadToken !== this.state.questionLoadToken) return;
+                    this.prefetchUpcomingQuestionAssets(this.state.currentQuestion + 1, 2);
+                });
             },
 
             getBackgroundRemovedImage(src) {
@@ -2447,10 +2472,7 @@
                         card.classList.remove('disabled');
                     });
                     this.startTimer();
-                    window.setTimeout(() => {
-                        if (loadToken !== this.state.questionLoadToken) return;
-                        this.prefetchUpcomingQuestionAssets(this.state.currentQuestion + 1, 2);
-                    }, 140);
+                    this.scheduleUpcomingPrefetch(loadToken);
                 }).catch(() => {
                     if (loadToken !== this.state.questionLoadToken) return;
                     this.state.isQuestionLoading = false;
@@ -2460,10 +2482,7 @@
                         card.classList.remove('disabled');
                     });
                     this.startTimer();
-                    window.setTimeout(() => {
-                        if (loadToken !== this.state.questionLoadToken) return;
-                        this.prefetchUpcomingQuestionAssets(this.state.currentQuestion + 1, 2);
-                    }, 140);
+                    this.scheduleUpcomingPrefetch(loadToken);
                 });
             },
 
@@ -2970,6 +2989,7 @@
                 
                 this.showScreen('victoryScreen');
                 this.clearState();
+                this.warmEntryQuestionAssets(true);
             },
 
             showGameOver() {
@@ -2984,6 +3004,7 @@
                 
                 this.showScreen('gameOverScreen');
                 this.clearState();
+                this.warmEntryQuestionAssets(true);
             },
 
             tryAgain() {
