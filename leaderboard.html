@@ -669,9 +669,11 @@
             const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
             const day = parsed.getDate();
             const month = monthNames[parsed.getMonth()] || '';
-            const hours = String(parsed.getHours()).padStart(2, '0');
+            const rawHours = parsed.getHours();
+            const hours = String(rawHours % 12 || 12);
             const minutes = String(parsed.getMinutes()).padStart(2, '0');
-            return `${day} ${month}, ${hours}:${minutes}`;
+            const meridiem = rawHours >= 12 ? 'PM' : 'AM';
+            return `${day} ${month}, ${hours}:${minutes} ${meridiem}`;
         }
 
         function normalizeOutcome(value) {

@@ -298,14 +298,18 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-wrap: nowrap;
             gap: clamp(12px, 2vw, 24px);
-            padding: clamp(14px, 2.5vw, 20px);
+            padding: clamp(12px, 2vw, 16px) clamp(14px, 2.5vw, 20px);
             background: var(--surface-strong);
             border-radius: 20px;
             margin-bottom: clamp(18px, 2.4vw, 24px);
             backdrop-filter: blur(10px);
             border: 2px solid var(--border-soft);
             box-shadow: var(--shadow-soft);
+            max-width: min(100%, 980px);
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .hud-item {
@@ -316,6 +320,60 @@
 
         .hud-item span {
             font-size: clamp(0.95rem, 2.4vw, 1.2rem);
+        }
+
+        .hud-label {
+            font-size: clamp(0.95rem, 2.4vw, 1.2rem);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .timer-high-score {
+            position: static;
+            transform: none;
+            font-size: clamp(0.62rem, 1.6vw, 0.82rem);
+            line-height: 1;
+            white-space: nowrap;
+            margin-top: 4px;
+            padding: 5px 9px;
+            border-radius: 999px;
+            border: 1px solid var(--border-soft);
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--accent);
+            font-weight: 700;
+            box-shadow: 0 6px 12px rgba(124, 116, 240, 0.10);
+        }
+
+        .timer-high-score-value {
+            color: var(--text-main);
+        }
+
+        .timer-high-score-value.is-loading {
+            color: var(--text-muted);
+        }
+
+        .streak-bonus {
+            position: fixed;
+            top: 126px;
+            left: 50%;
+            transform: translate(-50%, 6px);
+            color: var(--success);
+            background: rgba(255, 255, 255, 0.94);
+            border: 1px solid rgba(8, 221, 236, 0.25);
+            border-radius: 12px;
+            padding: 8px 12px;
+            box-shadow: 0 10px 20px rgba(124, 116, 240, 0.10);
+            opacity: 0;
+            transition: opacity 120ms ease, transform 120ms ease;
+            font-weight: 700;
+            z-index: 2350;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .streak-bonus.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
         }
 
         .score {
@@ -357,15 +415,30 @@
 
         /* Timer Circle */
         .timer-container {
+            --timer-size: clamp(56px, 8vw, 72px);
             position: relative;
-            width: clamp(66px, 12vw, 84px);
-            height: clamp(66px, 12vw, 84px);
+            min-width: var(--timer-size);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            flex: 0 0 auto;
+            overflow: visible;
+        }
+
+        .timer-ring-wrap {
+            position: relative;
+            width: var(--timer-size);
+            height: var(--timer-size);
+            flex: 0 0 auto;
         }
 
         .timer-circle {
             width: 100%;
             height: 100%;
-            transform: rotate(-90deg);
+            display: block;
+            overflow: visible;
         }
 
         .timer-bg {
@@ -396,17 +469,25 @@
             position: absolute;
             top: 50%;
             left: 50%;
+            width: auto;
+            min-width: 1.6ch;
+            text-align: center;
             transform: translate(-50%, -50%);
-            font-size: clamp(1rem, 3vw, 1.5rem);
+            font-size: clamp(0.9rem, 2.3vw, 1.2rem);
             font-weight: 700;
             font-family: 'Press Start 2P', cursive;
             color: var(--text-main);
+            line-height: 1;
+            white-space: nowrap;
         }
 
         /* Question Area */
         .question-section {
             text-align: center;
             margin-bottom: clamp(16px, 2.4vw, 24px);
+            max-width: min(100%, 980px);
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .question-counter {
@@ -430,6 +511,9 @@
             grid-template-columns: repeat(2, 1fr);
             gap: clamp(10px, 1.6vw, 16px);
             margin-bottom: clamp(14px, 2vw, 22px);
+            width: min(100%, 980px);
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .option-card {
@@ -442,6 +526,7 @@
             position: relative;
             overflow: hidden;
             box-shadow: 0 10px 24px rgba(139, 128, 240, 0.18);
+            min-width: 0;
         }
 
         .option-card::before {
@@ -472,15 +557,43 @@
         }
 
         .option-card.correct {
-            background: rgba(8, 221, 236, 0.18);
             border-color: var(--success);
+            box-shadow:
+                0 0 0 2px rgba(124, 255, 178, 0.28),
+                0 0 0 6px rgba(124, 255, 178, 0.18),
+                0 12px 30px rgba(8, 221, 236, 0.24);
             animation: correctPulse 0.6s ease;
         }
 
         .option-card.wrong {
-            background: rgba(244, 106, 200, 0.18);
             border-color: var(--error);
+            box-shadow:
+                0 0 0 2px rgba(244, 106, 200, 0.28),
+                0 0 0 6px rgba(244, 106, 200, 0.16),
+                0 12px 30px rgba(244, 106, 200, 0.20);
             animation: wrongShake 0.6s ease;
+        }
+
+        .options-grid.loading .option-card {
+            pointer-events: none;
+            opacity: 0.65;
+        }
+
+        .question-loading {
+            display: none;
+            width: min(100%, 980px);
+            margin: 0 auto clamp(12px, 1.8vw, 14px);
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border-soft);
+            background: rgba(255, 255, 255, 0.72);
+            color: var(--text-muted);
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .question-loading.show {
+            display: block;
         }
 
         .option-media {
@@ -736,13 +849,38 @@
             margin: 0;
         }
 
+        .save-status-banner {
+            position: fixed;
+            top: 84px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2400;
+            padding: 10px 14px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(244, 106, 200, 0.36);
+            color: var(--error);
+            box-shadow: 0 12px 24px rgba(124, 116, 240, 0.14);
+            font-weight: 600;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            max-width: calc(100vw - 24px);
+            text-align: center;
+        }
+
+        .save-status-banner.show {
+            opacity: 1;
+        }
+
         /* Progress Bar */
         .progress-bar {
             width: 100%;
+            max-width: min(100%, 980px);
             height: 8px;
             background: rgba(115, 231, 255, 0.28);
             border-radius: 10px;
-            margin-bottom: clamp(16px, 2.2vw, 24px);
+            margin: 0 auto clamp(16px, 2.2vw, 24px);
             overflow: hidden;
         }
 
@@ -762,17 +900,43 @@
 
         @media (max-width: 820px) {
             .game-hud {
-                display: grid;
-                grid-template-columns: repeat(2, minmax(0, 1fr));
+                display: flex;
+                flex-wrap: nowrap;
+                gap: 8px;
+                padding: 10px 12px;
             }
 
             .hud-item {
                 justify-content: center;
+                gap: 6px;
+                min-width: 0;
             }
 
             .timer-container {
-                grid-column: 1 / -1;
-                margin: 0 auto;
+                --timer-size: 54px;
+                margin: 0;
+                gap: 3px;
+            }
+
+            .hud-label {
+                font-size: 0.82rem;
+            }
+
+            .score {
+                font-size: 1.05rem;
+            }
+
+            .life {
+                font-size: 1.2rem;
+            }
+
+            .lives {
+                gap: 4px;
+            }
+
+            .timer-high-score {
+                font-size: 0.5rem;
+                padding: 3px 5px;
             }
         }
 
@@ -806,11 +970,56 @@
             }
 
             .options-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 8px;
+            }
+
+            .option-card {
+                padding: 8px;
             }
 
             .option-media {
                 aspect-ratio: 16 / 9;
+                padding: 8px;
+            }
+
+            .option-logo {
+                max-height: 92px;
+            }
+
+            .game-hud {
+                gap: 6px;
+                padding: 8px 10px;
+            }
+
+            .hud-label {
+                font-size: 0.72rem;
+            }
+
+            .score {
+                font-size: 0.92rem;
+            }
+
+            .life {
+                font-size: 1rem;
+            }
+
+            .lives {
+                gap: 3px;
+            }
+
+            .timer-container {
+                --timer-size: 48px;
+                gap: 2px;
+            }
+
+            .timer-text {
+                font-size: 0.72rem;
+            }
+
+            .timer-high-score {
+                font-size: 0.42rem;
+                padding: 2px 4px;
             }
 
             .high-score-popup {
@@ -820,6 +1029,56 @@
 
             .high-score-card {
                 border-width: 2px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .timer-container {
+                --timer-size: 44px;
+                gap: 2px;
+            }
+
+            .timer-text {
+                font-size: 0.64rem;
+            }
+
+            .timer-high-score {
+                font-size: 0.36rem;
+                padding: 2px 3px;
+                max-width: 64px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .game-hud {
+                gap: 5px;
+                padding: 8px 8px;
+            }
+
+            .hud-label {
+                font-size: 0.64rem;
+            }
+
+            .score {
+                font-size: 0.82rem;
+            }
+
+            .life {
+                font-size: 0.9rem;
+            }
+
+            .lives {
+                gap: 2px;
+            }
+        }
+
+        /* Phones (portrait): center the active screen vertically without affecting tablet/desktop layouts */
+        @media (max-width: 640px) and (orientation: portrait) {
+            .container {
+                align-items: center;
+                justify-content: center;
+                padding-top: 10px;
+                padding-bottom: 10px;
             }
         }
 
@@ -836,6 +1095,40 @@
 
             .option-media {
                 aspect-ratio: 21 / 9;
+            }
+        }
+
+        @media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
+            .container {
+                max-width: 1060px;
+                width: min(100%, 1060px);
+                padding-left: 14px;
+                padding-right: 14px;
+            }
+
+            .options-grid {
+                gap: 10px;
+            }
+
+            .option-card {
+                padding: 10px;
+            }
+
+            .option-media {
+                aspect-ratio: 18 / 8;
+                padding: 10px;
+            }
+
+            .option-logo {
+                max-height: min(14vh, 124px);
+            }
+
+            .game-hud {
+                --timer-size: 60px;
+            }
+
+            .question-section {
+                margin-bottom: 14px;
             }
         }
 
@@ -866,6 +1159,8 @@
 
     <!-- Feedback Messages -->
     <div class="feedback" id="feedback"></div>
+    <div class="save-status-banner" id="saveStatusBanner" role="status" aria-live="polite"></div>
+    <div class="streak-bonus" id="streakBonusNotice" aria-live="polite">Streak bonus +2</div>
 
     <!-- High Score Popup -->
     <div class="high-score-popup" id="highScorePopup" aria-live="polite" role="status">
@@ -879,13 +1174,13 @@
         <div class="screen active" id="landingScreen">
             <div class="landing">
                 <h1 class="logo-title"><br>ZOGO<span class="logo-title-gap">CHALLENGE</span></h1>
-                <p class="subtitle">Test Your Zoho Logo Knowledge!</p>
+                <p class="subtitle">Think you know Zoho logos? Let’s find out.</p>
                 
                 <div class="game-info">
                     <h3>🎮 How to Play</h3>
                     <div class="info-item">
                         <span class="info-icon">🎯</span>
-                        <span>Identify the official logo from 4 image options</span>
+                        <span>Choose the official logo from 4 options</span>
                     </div>
                     <div class="info-item">
                         <span class="info-icon">⏱️</span>
@@ -893,11 +1188,11 @@
                     </div>
                     <div class="info-item">
                         <span class="info-icon">❤️</span>
-                        <span>3 lives - don't lose them all!</span>
+                        <span>3 lives — use them wisely</span>
                     </div>
                     <div class="info-item">
                         <span class="info-icon">⭐</span>
-                        <span>+10 points correct | -5 points wrong</span>
+                        <span>+10 for correct | −5 for wrong</span>
                     </div>
                 </div>
 
@@ -916,14 +1211,14 @@
                             <input 
                                 type="text" 
                                 id="playerName" 
-                                placeholder="Enter your name..."
+                                placeholder="Type your name..."
                                 maxlength="20"
                                 autocomplete="off"
                                 required
                             >
                             <div class="error-msg" id="nameError">Name must be at least 2 characters</div>
                         </div>
-                        <button type="submit" class="btn">LET'S GO! 🚀</button>
+                        <button type="submit" class="btn">LET'S GO!</button>
                     </form>
                 </div>
             </div>
@@ -937,21 +1232,27 @@
 
             <div class="game-hud">
                 <div class="hud-item">
-                    <span style="font-size: 1.2rem; font-weight: 600;">SCORE:</span>
+                    <span class="hud-label">SCORE:</span>
                     <span class="score" id="score">0</span>
                 </div>
 
                 <div class="timer-container">
-                    <svg class="timer-circle" width="80" height="80">
-                        <circle class="timer-bg" cx="40" cy="40" r="32"></circle>
-                        <circle class="timer-progress" id="timerCircle" cx="40" cy="40" r="32" 
-                                stroke-dasharray="201" stroke-dashoffset="0"></circle>
-                    </svg>
-                    <div class="timer-text" id="timerText">10</div>
+                    <div class="timer-ring-wrap">
+                        <svg class="timer-circle" width="80" height="80" viewBox="0 0 80 80" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+                            <circle class="timer-bg" cx="40" cy="40" r="32"></circle>
+                            <circle class="timer-progress" id="timerCircle" cx="40" cy="40" r="32"
+                                    stroke-dasharray="201" stroke-dashoffset="0" transform="rotate(-90 40 40)"></circle>
+                        </svg>
+                        <div class="timer-text" id="timerText">10</div>
+                    </div>
+                    <div class="timer-high-score" aria-live="polite">
+                        High Score:
+                        <span class="timer-high-score-value is-loading" id="hudHighScore">Loading...</span>
+                    </div>
                 </div>
 
                 <div class="hud-item">
-                    <span style="font-size: 1.2rem; font-weight: 600;">LIVES:</span>
+                    <span class="hud-label">LIVES:</span>
                     <div class="lives" id="lives">
                         <span class="life">❤️</span>
                         <span class="life">❤️</span>
@@ -965,6 +1266,8 @@
                 <h2 class="question-text" id="questionText">Loading...</h2>
             </div>
 
+            <div class="question-loading" id="questionLoading" role="status" aria-live="polite">Loading question...</div>
+
             <div class="options-grid" id="optionsGrid">
                 <!-- Options will be inserted here -->
             </div>
@@ -974,7 +1277,7 @@
         <div class="screen" id="victoryScreen">
             <div class="end-screen">
                 <div class="end-card">
-                    <h1 class="end-title victory">VICTORY! 🏆</h1>
+                    <h1 class="end-title victory">VICTORY!</h1>
                     <p style="font-size: 1.3rem; margin-bottom: 30px; color: var(--accent);">
                         Congratulations, <span id="winnerName"></span>!
                     </p>
@@ -1304,7 +1607,7 @@
         ];
 
         const questions = logoQuestionSeeds.map((item) => ({
-            question: `Select the official logo for ${item.product}`,
+            question: `Which one is the official ${item.product} logo? `,
             correct: item.correct,
             options: [
                 { src: item.correct, alt: `${item.product} official logo` },
@@ -1333,6 +1636,7 @@
         const apiUrl = (path) => (API_BASE ? `${API_BASE}${path}` : path);
         const QUESTION_TIME_SECONDS = 10;
         const ENABLE_CANVAS_BG_REMOVAL = false;
+        const HIGH_SCORE_CACHE_TTL_MS = 30000;
         const SOUND_CONFIG = Object.freeze({
             backgroundVolume: 0.14,
             effects: {
@@ -1361,20 +1665,29 @@
                 correctCount: 0,
                 wrongCount: 0,
                 timeoutCount: 0,
+                correctStreak: 0,
                 totalAnswered: 0,
                 timer: null,
                 timeLeft: QUESTION_TIME_SECONDS,
                 isAnswering: false,
+                isQuestionLoading: false,
+                questionLoadToken: 0,
                 musicEnabled: true,
                 isSavingResult: false,
                 resultSaved: false,
                 audioUnlocked: false,
+                resultFlushPromise: null,
+                pendingResultPayload: null,
+                lastResultSyncKey: '',
+                topScoreBeforeRun: null,
+                cachedTopScore: null,
+                highScoreFetchedAt: 0,
+                highScoreFetchPromise: null,
+                saveStatusTimer: null,
+                streakBonusTimer: null,
                 highScorePopupTimer: null,
                 processedImageCache: {},
                 questions: [],
-                preloadedQuestions: [],
-                preGamePreloadPromise: null,
-                lastRenderToken: '',
                 attemptId: '',
                 gameStartedAtMs: 0,
                 pendingTransitionTimer: null,
@@ -1386,18 +1699,15 @@
                 effectDurationsMs: {},
                 activeEffectPlayers: {}
             },
-            leaderboardSync: {
-                queue: [],
-                isProcessing: false
-            },
 
             init() {
                 this.applyAssetVersioning();
                 this.createParticles();
-                this.loadState();
                 this.setupAudio();
+                this.loadState();
                 this.resetPlayerEntryForm();
-                this.preparePreGameQuestions(true);
+                this.renderHighScoreDisplay({ loading: true });
+                void this.fetchCurrentTopScore();
             },
 
             createParticles() {
@@ -1530,8 +1840,7 @@
             },
 
             cacheEffectDuration(key, effect) {
-                const effectDuration = effect ? effect.duration : NaN;
-                const durationMs = Math.round(Number(effectDuration) * 1000);
+                const durationMs = Math.round(Number(effect?.duration) * 1000);
                 if (Number.isFinite(durationMs) && durationMs > 0) {
                     this.audio.effectDurationsMs[key] = durationMs;
                 }
@@ -1613,7 +1922,7 @@
                 if (!baseEffect) return;
 
                 const source = baseEffect.currentSrc ||
-                    ((baseEffect.querySelector('source') && baseEffect.querySelector('source').getAttribute('src')) || '') ||
+                    baseEffect.querySelector('source')?.getAttribute('src') ||
                     baseEffect.src;
 
                 if (!source) return;
@@ -1665,15 +1974,12 @@
                 }
 
                 const effect = this.audio.effects[key];
-                const effectDuration = effect ? effect.duration : NaN;
-                const fallbackDuration = Math.round(Number(effectDuration) * 1000);
+                const fallbackDuration = Math.round(Number(effect?.duration) * 1000);
                 if (Number.isFinite(fallbackDuration) && fallbackDuration > 0) {
                     return fallbackDuration;
                 }
 
-                const configuredFallback = SOUND_CONFIG.effects[key]
-                    ? SOUND_CONFIG.effects[key].fallbackDurationMs
-                    : undefined;
+                const configuredFallback = SOUND_CONFIG.effects[key]?.fallbackDurationMs;
                 if (Number.isFinite(configuredFallback) && configuredFallback > 0) {
                     return configuredFallback;
                 }
@@ -1719,28 +2025,7 @@
                 this.ensureBackgroundMusic();
                 this.showScreen('playerEntryScreen');
                 this.resetPlayerEntryForm();
-                this.preparePreGameQuestions();
                 document.getElementById('playerName').focus();
-            },
-
-            getOrCreatePlayerId() {
-                const storageKey = 'zohoPlayerId';
-                let playerId = '';
-
-                try {
-                    playerId = (localStorage.getItem(storageKey) || '').trim().toLowerCase();
-                    if (!playerId) {
-                        playerId = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
-                            ? crypto.randomUUID().toLowerCase()
-                            : `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
-                        localStorage.setItem(storageKey, playerId);
-                    }
-                } catch (error) {
-                    playerId = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
-                }
-
-                const normalizedPlayerId = playerId.replace(/[^a-z0-9-]/gi, '').toLowerCase();
-                return normalizedPlayerId || `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
             },
 
             createAttemptId() {
@@ -1794,14 +2079,11 @@
                 if (nameError) nameError.classList.remove('show');
             },
 
-            async startGame(event) {
+            startGame(event) {
                 event.preventDefault();
                 const nameInput = document.getElementById('playerName');
                 const name = nameInput.value.trim();
                 const nameError = document.getElementById('nameError');
-                const form = event && event.target ? event.target : document.getElementById('playerForm');
-                const submitButton = form ? form.querySelector('button[type="submit"]') : null;
-                const originalSubmitText = submitButton ? submitButton.textContent : '';
 
                 let isValid = true;
                 if (name.length < 2) {
@@ -1817,59 +2099,39 @@
 
                 this.unlockAudio().catch(() => {});
 
-                if (submitButton) {
-                    submitButton.disabled = true;
-                    submitButton.textContent = 'LOADING...';
-                }
+                this.state.playerName = name;
+                this.state.playerId = this.createLeaderboardSessionId();
+                this.state.currentQuestion = 0;
+                this.state.score = 0;
+                this.state.lives = 3;
+                this.state.correctCount = 0;
+                this.state.wrongCount = 0;
+                this.state.timeoutCount = 0;
+                this.state.correctStreak = 0;
+                this.state.totalAnswered = 0;
+                this.state.isQuestionLoading = false;
+                this.state.questionLoadToken = 0;
+                this.state.isSavingResult = false;
+                this.state.resultSaved = false;
+                this.state.pendingResultPayload = null;
+                this.state.lastResultSyncKey = '';
+                this.state.topScoreBeforeRun = null;
+                this.state.attemptId = this.createAttemptId();
+                this.state.gameStartedAtMs = Date.now();
+                this.state.questions = this.shuffleArray([...questions]);
+                this.hideHighScorePopup();
+                this.showSaveStatus('');
+                this.clearPendingTransition();
+                this.clearBackgroundResume();
+                this.stopAllEffects();
 
-                try {
-                    const preGameReadyPromise = this.state.preGamePreloadPromise;
+                this.captureTopScoreBeforeRun();
+                void this.saveResult(this.buildResultPayload('in_progress'), { force: true });
 
-                    this.state.playerName = name;
-                    this.state.playerId = this.createLeaderboardSessionId();
-                    this.state.currentQuestion = 0;
-                    this.state.score = 0;
-                    this.state.lives = 3;
-                    this.state.correctCount = 0;
-                    this.state.wrongCount = 0;
-                    this.state.timeoutCount = 0;
-                    this.state.totalAnswered = 0;
-                    this.state.attemptId = this.createAttemptId();
-                    this.state.gameStartedAtMs = Date.now();
-                    this.state.isSavingResult = false;
-                    this.state.resultSaved = false;
-                    this.state.questions = (
-                        Array.isArray(this.state.preloadedQuestions) && this.state.preloadedQuestions.length > 0
-                            ? this.state.preloadedQuestions
-                            : this.shuffleArray([...questions])
-                    );
-                    this.state.preloadedQuestions = [];
-                    this.state.preGamePreloadPromise = null;
-                    this.hideHighScorePopup();
-                    this.clearPendingTransition();
-                    this.clearBackgroundResume();
-                    this.stopAllEffects();
-                    this.enqueueLeaderboardSnapshot('in_progress');
-
-                    if (preGameReadyPromise && typeof preGameReadyPromise.then === 'function') {
-                        await Promise.race([
-                            preGameReadyPromise,
-                            new Promise((resolve) => setTimeout(resolve, 3500))
-                        ]).catch(() => {});
-                    }
-
-                    this.preparePreGameQuestions();
-                    this.saveState();
-                    this.ensureBackgroundMusic();
-                    this.showScreen('gameScreen');
-                    this.prefetchUpcomingQuestionAssets(0, 3);
-                    this.loadQuestion();
-                } finally {
-                    if (submitButton) {
-                        submitButton.disabled = false;
-                        submitButton.textContent = originalSubmitText || "LET'S GO! 🚀";
-                    }
-                }
+                this.saveState();
+                this.ensureBackgroundMusic();
+                this.showScreen('gameScreen');
+                this.loadQuestion();
             },
 
             shuffleArray(array) {
@@ -1881,29 +2143,70 @@
                 return shuffled;
             },
 
-            preparePreGameQuestions(force = false) {
-                if (
-                    !force &&
-                    Array.isArray(this.state.preloadedQuestions) &&
-                    this.state.preloadedQuestions.length > 0
-                ) {
+            renderHighScoreDisplay({ loading = false } = {}) {
+                const highScoreValue = document.getElementById('hudHighScore');
+                if (!highScoreValue) return;
+                const showLoading =
+                    Boolean(loading) ||
+                    (Boolean(this.state.highScoreFetchPromise) && typeof this.state.cachedTopScore !== 'number');
+
+                if (showLoading) {
+                    highScoreValue.textContent = 'Loading...';
+                    highScoreValue.classList.add('is-loading');
                     return;
                 }
 
-                const preloadedDeck = this.shuffleArray([...questions]);
-                this.state.preloadedQuestions = preloadedDeck;
-                const preloadTasks = [];
-
-                if (preloadedDeck.length > 0) {
-                    preloadTasks.push(this.prefetchQuestionAssets(preloadedDeck[0], true));
+                highScoreValue.classList.remove('is-loading');
+                if (typeof this.state.cachedTopScore === 'number') {
+                    highScoreValue.textContent = String(this.state.cachedTopScore);
+                } else {
+                    highScoreValue.textContent = '—';
                 }
-                if (preloadedDeck.length > 1) {
-                    preloadTasks.push(this.prefetchQuestionAssets(preloadedDeck[1], false));
+            },
+
+            showSaveStatus(message) {
+                const banner = document.getElementById('saveStatusBanner');
+                if (!banner) return;
+
+                if (this.state.saveStatusTimer) {
+                    clearTimeout(this.state.saveStatusTimer);
+                    this.state.saveStatusTimer = null;
                 }
 
-                this.state.preGamePreloadPromise = preloadTasks.length > 0
-                    ? Promise.all(preloadTasks).catch(() => {})
-                    : Promise.resolve();
+                if (!message) {
+                    banner.textContent = '';
+                    banner.classList.remove('show');
+                    return;
+                }
+
+                banner.textContent = message;
+                banner.classList.add('show');
+                this.state.saveStatusTimer = setTimeout(() => {
+                    banner.classList.remove('show');
+                    this.state.saveStatusTimer = null;
+                }, 2600);
+            },
+
+            showStreakBonusNotice() {
+                const notice = document.getElementById('streakBonusNotice');
+                if (!notice) return;
+
+                if (this.state.streakBonusTimer) {
+                    clearTimeout(this.state.streakBonusTimer);
+                }
+
+                notice.classList.add('show');
+                this.state.streakBonusTimer = setTimeout(() => {
+                    notice.classList.remove('show');
+                    this.state.streakBonusTimer = null;
+                }, 1000);
+            },
+
+            setQuestionLoading(isLoading) {
+                const loadingEl = document.getElementById('questionLoading');
+                const grid = document.getElementById('optionsGrid');
+                if (loadingEl) loadingEl.classList.toggle('show', Boolean(isLoading));
+                if (grid) grid.classList.toggle('loading', Boolean(isLoading));
             },
 
             preloadImage(src) {
@@ -1927,7 +2230,6 @@
                     image.decoding = 'async';
                     image.src = src;
 
-                    // decode() can resolve earlier on some browsers and smooth first paint.
                     if (typeof image.decode === 'function') {
                         image.decode().then(finish).catch(() => {});
                     }
@@ -1938,30 +2240,6 @@
 
                 this.state.processedImageCache[src] = preloadPromise;
                 return preloadPromise;
-            },
-
-            prefetchQuestionAssets(question, warmProcessedCache = false) {
-                if (!question || !Array.isArray(question.options)) return Promise.resolve();
-
-                const tasks = question.options.map((option) => {
-                    const resolvedSrc = this.resolveAssetUrl(option.src);
-                    const preloadTask = warmProcessedCache
-                        ? this.getBackgroundRemovedImage(resolvedSrc)
-                        : this.preloadImage(resolvedSrc);
-                    return preloadTask.catch(() => null);
-                });
-
-                return Promise.all(tasks);
-            },
-
-            prefetchUpcomingQuestionAssets(startIndex, count = 2) {
-                if (!Array.isArray(this.state.questions) || this.state.questions.length === 0) return;
-                const safeStart = Math.max(0, startIndex);
-                const safeEnd = Math.min(this.state.questions.length, safeStart + Math.max(0, count));
-
-                for (let index = safeStart; index < safeEnd; index += 1) {
-                    this.prefetchQuestionAssets(this.state.questions[index]);
-                }
             },
 
             getBackgroundRemovedImage(src) {
@@ -2030,14 +2308,18 @@
                     return;
                 }
 
-                const questionIndex = this.state.currentQuestion;
                 const question = this.state.questions[this.state.currentQuestion];
+                const loadToken = ++this.state.questionLoadToken;
+                this.state.isQuestionLoading = true;
+                this.state.isAnswering = true;
+                this.setQuestionLoading(true);
                 
                 // Update UI
                 document.getElementById('questionCounter').textContent = 
                     `Question ${this.state.currentQuestion + 1} of ${this.state.questions.length}`;
                 document.getElementById('questionText').textContent = question.question;
                 document.getElementById('score').textContent = this.state.score;
+                this.renderHighScoreDisplay();
                 
                 // Update progress bar
                 const progress = ((this.state.currentQuestion) / this.state.questions.length) * 100;
@@ -2054,26 +2336,38 @@
                 }
 
                 // Render options
-                this.renderOptions(question);
-                if (this.state.currentQuestion !== questionIndex) return;
-                if (!document.getElementById('gameScreen').classList.contains('active')) return;
+                void this.renderOptions(question).then(() => {
+                    if (loadToken !== this.state.questionLoadToken) return;
 
-                // Start timer
-                this.state.isAnswering = false;
-                this.startTimer();
-                this.prefetchUpcomingQuestionAssets(this.state.currentQuestion + 1, 2);
+                    this.state.isQuestionLoading = false;
+                    this.state.isAnswering = false;
+                    this.setQuestionLoading(false);
+                    document.querySelectorAll('#optionsGrid .option-card').forEach((card) => {
+                        card.classList.remove('disabled');
+                    });
+                    this.startTimer();
+                }).catch(() => {
+                    if (loadToken !== this.state.questionLoadToken) return;
+                    this.state.isQuestionLoading = false;
+                    this.state.isAnswering = false;
+                    this.setQuestionLoading(false);
+                    document.querySelectorAll('#optionsGrid .option-card').forEach((card) => {
+                        card.classList.remove('disabled');
+                    });
+                    this.startTimer();
+                });
             },
 
             renderOptions(question) {
                 const grid = document.getElementById('optionsGrid');
                 const shuffledOptions = this.shuffleArray(question.options);
-                const renderToken = `${this.state.currentQuestion}-${Date.now()}`;
-                this.state.lastRenderToken = renderToken;
+                const readyPromises = [];
 
                 grid.innerHTML = '';
                 shuffledOptions.forEach((option) => {
                     const card = document.createElement('div');
                     card.className = 'option-card';
+                    card.classList.add('disabled');
                     card.dataset.src = option.src;
                     card.tabIndex = 0;
                     card.setAttribute('role', 'button');
@@ -2089,15 +2383,6 @@
                     logoImage.decoding = 'async';
                     logoImage.fetchPriority = 'high';
 
-                    const resolvedSrc = this.resolveAssetUrl(option.src);
-                    this.getBackgroundRemovedImage(resolvedSrc).then((processedSrc) => {
-                        if (this.state.lastRenderToken !== renderToken) return;
-                        logoImage.src = processedSrc;
-                    }).catch(() => {
-                        if (this.state.lastRenderToken !== renderToken) return;
-                        logoImage.src = resolvedSrc;
-                    });
-
                     const fallback = document.createElement('div');
                     fallback.className = 'option-logo-fallback';
                     fallback.textContent = 'IMAGE';
@@ -2107,6 +2392,28 @@
                         logoImage.style.display = 'none';
                         fallback.style.display = 'flex';
                     };
+
+                    readyPromises.push(new Promise((resolve) => {
+                        let settled = false;
+                        const finish = () => {
+                            if (settled) return;
+                            settled = true;
+                            resolve();
+                        };
+
+                        logoImage.addEventListener('load', finish, { once: true });
+                        logoImage.addEventListener('error', finish, { once: true });
+                        window.setTimeout(finish, 5000);
+
+                        const resolvedSrc = this.resolveAssetUrl(option.src);
+                        this.getBackgroundRemovedImage(resolvedSrc)
+                            .then((processedSrc) => {
+                                logoImage.src = processedSrc;
+                            })
+                            .catch(() => {
+                                logoImage.src = resolvedSrc;
+                            });
+                    }));
 
                     card.addEventListener('click', () => this.selectAnswer(option.src));
                     card.addEventListener('keydown', (event) => {
@@ -2121,6 +2428,8 @@
                     card.appendChild(media);
                     grid.appendChild(card);
                 });
+
+                return Promise.allSettled(readyPromises);
             },
 
             startTimer() {
@@ -2174,7 +2483,7 @@
             },
 
             selectAnswer(answer) {
-                if (this.state.isAnswering) return;
+                if (this.state.isAnswering || this.state.isQuestionLoading) return;
                 
                 this.state.isAnswering = true;
                 this.stopTimer();
@@ -2204,26 +2513,32 @@
                 // Update score and stats
                 this.state.totalAnswered++;
                 if (isCorrect) {
+                    this.state.correctStreak++;
                     this.state.score += 10;
                     this.state.correctCount++;
+                    if (this.state.correctStreak % 5 === 0) {
+                        this.state.score += 2;
+                        this.showStreakBonusNotice();
+                    }
+                    document.getElementById('score').textContent = this.state.score;
                     this.animateScore();
                 } else {
+                    this.state.correctStreak = 0;
                     this.state.wrongCount++;
                     this.state.lives--;
                     this.state.score = Math.max(0, this.state.score - 5);
+                    document.getElementById('score').textContent = this.state.score;
                     
-                    this.enqueueLeaderboardSnapshot('in_progress');
-
                     if (this.state.lives === 0) {
+                        this.saveState();
+                        void this.saveResult(this.buildResultPayload('in_progress'));
                         this.scheduleTransition(() => this.showGameOver(), transitionDelay);
                         return;
                     }
                 }
 
-                if (isCorrect) {
-                    this.enqueueLeaderboardSnapshot('in_progress');
-                }
                 this.saveState();
+                void this.saveResult(this.buildResultPayload('in_progress'));
 
                 // Next question
                 this.scheduleTransition(() => {
@@ -2235,10 +2550,12 @@
             timeout() {
                 this.state.isAnswering = true;
                 this.stopTimer();
+                this.state.correctStreak = 0;
                 this.state.totalAnswered++;
                 this.state.timeoutCount++;
                 this.state.lives--;
                 this.state.score = Math.max(0, this.state.score - 5);
+                document.getElementById('score').textContent = this.state.score;
                 const effectKey = 'timeout';
                 const transitionDelay = this.getTransitionDelayMs(effectKey);
 
@@ -2254,14 +2571,16 @@
 
                 this.playEffect(effectKey);
                 this.showFeedback(false, 'TIME OUT!', Math.max(1000, transitionDelay - 260));
-                this.enqueueLeaderboardSnapshot('in_progress');
 
                 if (this.state.lives === 0) {
+                    this.saveState();
+                    void this.saveResult(this.buildResultPayload('in_progress'));
                     this.scheduleTransition(() => this.showGameOver(), transitionDelay);
                     return;
                 }
 
                 this.saveState();
+                void this.saveResult(this.buildResultPayload('in_progress'));
 
                 this.scheduleTransition(() => {
                     this.state.currentQuestion++;
@@ -2273,7 +2592,7 @@
                 const feedback = document.getElementById('feedback');
                 const isTimeout = typeof customText === 'string' && customText.toUpperCase().includes('TIME OUT');
                 const feedbackType = isTimeout ? 'timeout' : (isCorrect ? 'correct' : 'wrong');
-                feedback.textContent = customText || (isCorrect ? 'CORRECT! ✓' : 'WRONG! ✗');
+                feedback.textContent = customText || (isCorrect ? 'CORRECT' : 'WRONG');
                 feedback.className = 'feedback show ' + feedbackType;
                 
                 setTimeout(() => {
@@ -2344,47 +2663,37 @@
                 };
             },
 
-            enqueueLeaderboardSnapshot(outcome) {
-                if (!this.state.playerId) {
-                    this.state.playerId = this.createLeaderboardSessionId();
-                }
-                if (this.state.playerName.trim().length < 2) {
-                    return Promise.resolve(false);
-                }
-
-                const payload = this.buildResultPayload(outcome, {
-                    attemptId: this.createAttemptId()
-                });
-
-                return this.enqueueLeaderboardPayload(payload);
-            },
-
-            enqueueLeaderboardPayload(payload) {
-                return new Promise((resolve) => {
-                    this.leaderboardSync.queue.push({ payload, resolve });
-                    this.flushLeaderboardSnapshotQueue();
-                });
-            },
-
-            async flushLeaderboardSnapshotQueue() {
-                if (this.leaderboardSync.isProcessing) return;
-
-                this.leaderboardSync.isProcessing = true;
-                try {
-                    while (this.leaderboardSync.queue.length > 0) {
-                        const item = this.leaderboardSync.queue[0];
-                        const saved = await this.saveResult(item.payload);
-                        this.leaderboardSync.queue.shift();
-                        if (typeof item.resolve === 'function') {
-                            item.resolve(saved);
-                        }
-                    }
-                } finally {
-                    this.leaderboardSync.isProcessing = false;
-                }
+            buildResultSyncKey(payload) {
+                return JSON.stringify([
+                    String(payload.playerId || '').trim().toLowerCase(),
+                    String(payload.playerName || '').trim(),
+                    Number(payload.score) || 0,
+                    Number(payload.correctCount) || 0,
+                    Number(payload.wrongCount) || 0,
+                    Number(payload.timeoutCount) || 0,
+                    Number(payload.totalAnswered) || 0,
+                    String(payload.outcome || '')
+                ]);
             },
 
             async fetchCurrentTopScore() {
+                const now = Date.now();
+                const hasFreshCache =
+                    typeof this.state.cachedTopScore === 'number' &&
+                    (now - this.state.highScoreFetchedAt) < HIGH_SCORE_CACHE_TTL_MS;
+                if (hasFreshCache) {
+                    this.renderHighScoreDisplay();
+                    return this.state.cachedTopScore;
+                }
+
+                if (this.state.highScoreFetchPromise) {
+                    this.renderHighScoreDisplay({ loading: true });
+                    return this.state.highScoreFetchPromise;
+                }
+
+                this.renderHighScoreDisplay({ loading: true });
+
+                const requestPromise = (async () => {
                 try {
                     const response = await this.fetchWithTimeout(apiUrl('/api/results?limit=1&sort=leaderboard'), {
                         method: 'GET',
@@ -2399,19 +2708,36 @@
                     }
 
                     const data = await response.json();
-                    const topScore = Number(
-                        data &&
-                        Array.isArray(data.results) &&
-                        data.results[0]
-                            ? data.results[0].score
-                            : undefined
-                    );
-                    if (!Number.isFinite(topScore)) return 0;
-                    return Math.max(0, Math.floor(topScore));
+                    const topScore = Number(data?.results?.[0]?.score);
+                    const normalizedScore = Number.isFinite(topScore) ? Math.max(0, Math.floor(topScore)) : 0;
+                    this.state.cachedTopScore = normalizedScore;
+                    this.state.highScoreFetchedAt = Date.now();
+                    this.renderHighScoreDisplay();
+                    return normalizedScore;
                 } catch (error) {
                     console.warn('Could not fetch current top score.', error);
+                    this.state.cachedTopScore = null;
+                    this.state.highScoreFetchedAt = 0;
+                    this.renderHighScoreDisplay();
                     return null;
+                } finally {
+                    this.state.highScoreFetchPromise = null;
                 }
+                })();
+
+                this.state.highScoreFetchPromise = requestPromise;
+                return requestPromise;
+            },
+
+            captureTopScoreBeforeRun() {
+                const playerId = this.state.playerId;
+                this.state.topScoreBeforeRun = null;
+
+                this.fetchCurrentTopScore().then((score) => {
+                    if (this.state.playerId !== playerId) return;
+                    if (typeof score !== 'number') return;
+                    this.state.topScoreBeforeRun = score;
+                });
             },
 
             async fetchWithTimeout(url, options = {}, timeoutMs = 8000) {
@@ -2428,9 +2754,7 @@
                 }
             },
 
-            async saveResult(payload) {
-                this.state.isSavingResult = true;
-
+            async postResultPayload(payload) {
                 try {
                     const maxAttempts = 4;
                     for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
@@ -2458,27 +2782,73 @@
                     }
                 } catch (error) {
                     console.warn('Could not save game result to the database.', error);
+                    this.showSaveStatus('Could not save score (server offline).');
                     return false;
-                } finally {
-                    this.state.isSavingResult = false;
                 }
+            },
+
+            async saveResult(payload, { force = false } = {}) {
+                if (!payload) {
+                    return false;
+                }
+
+                this.state.pendingResultPayload = { payload, force };
+                if (this.state.isSavingResult) {
+                    return this.state.resultFlushPromise || true;
+                }
+
+                this.state.isSavingResult = true;
+                this.state.resultFlushPromise = (async () => {
+                    try {
+                        while (this.state.pendingResultPayload) {
+                            const next = this.state.pendingResultPayload;
+                            this.state.pendingResultPayload = null;
+
+                            const nextPayload = next.payload;
+                            const nextForce = Boolean(next.force);
+                            const nextKey = this.buildResultSyncKey(nextPayload);
+
+                            if (!nextForce && nextKey === this.state.lastResultSyncKey) {
+                                continue;
+                            }
+
+                            const saved = await this.postResultPayload(nextPayload);
+                            if (!saved) {
+                                return false;
+                            }
+
+                            this.state.lastResultSyncKey = nextKey;
+                            this.showSaveStatus('');
+                        }
+
+                        return true;
+                    } finally {
+                        this.state.isSavingResult = false;
+                        this.state.resultFlushPromise = null;
+                    }
+                })();
+
+                return this.state.resultFlushPromise;
             },
 
             async persistResultAndMaybeShowHighScore(outcome) {
                 if (!this.state.playerId) {
                     this.state.playerId = this.createLeaderboardSessionId();
                 }
-                const finalPayload = this.buildResultPayload(outcome, {
-                    attemptId: this.createAttemptId()
-                });
-                const finalPayloadScore = finalPayload.score;
-                const previousTopScore = await this.fetchCurrentTopScore();
-                const saved = await this.enqueueLeaderboardPayload(finalPayload);
+                const payload = this.buildResultPayload(outcome);
+                const previousTopScore =
+                    typeof this.state.topScoreBeforeRun === 'number'
+                        ? this.state.topScoreBeforeRun
+                        : await this.fetchCurrentTopScore();
+                const saved = await this.saveResult(payload, { force: true });
 
                 if (!saved) return;
                 if (typeof previousTopScore !== 'number') return;
-                if (finalPayloadScore <= previousTopScore) return;
+                if (payload.score <= previousTopScore) return;
 
+                this.state.cachedTopScore = payload.score;
+                this.state.highScoreFetchedAt = Date.now();
+                this.renderHighScoreDisplay();
                 this.showHighScorePopup();
             },
 
@@ -2525,27 +2895,34 @@
                 }
 
                 this.state.playerId = this.createLeaderboardSessionId();
-
                 this.state.currentQuestion = 0;
                 this.state.score = 0;
                 this.state.lives = 3;
                 this.state.correctCount = 0;
                 this.state.wrongCount = 0;
                 this.state.timeoutCount = 0;
+                this.state.correctStreak = 0;
                 this.state.totalAnswered = 0;
                 this.state.timeLeft = QUESTION_TIME_SECONDS;
                 this.state.isAnswering = false;
+                this.state.isQuestionLoading = false;
+                this.state.questionLoadToken = 0;
                 this.state.isSavingResult = false;
                 this.state.resultSaved = false;
+                this.state.pendingResultPayload = null;
+                this.state.lastResultSyncKey = '';
+                this.state.topScoreBeforeRun = null;
                 this.state.attemptId = this.createAttemptId();
                 this.state.gameStartedAtMs = Date.now();
                 this.state.questions = this.shuffleArray([...questions]);
-                this.enqueueLeaderboardSnapshot('in_progress');
+
+                this.showSaveStatus('');
+                this.captureTopScoreBeforeRun();
+                void this.saveResult(this.buildResultPayload('in_progress'), { force: true });
 
                 this.saveState();
                 this.ensureBackgroundMusic();
                 this.showScreen('gameScreen');
-                this.prefetchUpcomingQuestionAssets(0, 3);
                 this.loadQuestion();
             },
 
@@ -2565,17 +2942,24 @@
                 this.state.correctCount = 0;
                 this.state.wrongCount = 0;
                 this.state.timeoutCount = 0;
+                this.state.correctStreak = 0;
                 this.state.totalAnswered = 0;
                 this.state.timeLeft = QUESTION_TIME_SECONDS;
                 this.state.isAnswering = false;
+                this.state.isQuestionLoading = false;
+                this.state.questionLoadToken = 0;
                 this.state.isSavingResult = false;
                 this.state.resultSaved = false;
+                this.state.pendingResultPayload = null;
+                this.state.lastResultSyncKey = '';
+                this.state.topScoreBeforeRun = null;
                 this.state.questions = [];
                 this.state.attemptId = '';
                 this.state.gameStartedAtMs = 0;
 
                 this.clearState();
                 this.resetPlayerEntryForm();
+                this.renderHighScoreDisplay();
             },
 
             restart() {
@@ -2594,6 +2978,7 @@
                         correctCount: this.state.correctCount,
                         wrongCount: this.state.wrongCount,
                         timeoutCount: this.state.timeoutCount,
+                        correctStreak: this.state.correctStreak,
                         totalAnswered: this.state.totalAnswered,
                         attemptId: this.state.attemptId,
                         gameStartedAtMs: this.state.gameStartedAtMs,
@@ -2622,6 +3007,13 @@
                     const saved = localStorage.getItem('zohoGameState');
                     if (saved) {
                         const state = JSON.parse(saved);
+                        const savedPlayerName = typeof state.playerName === 'string' ? state.playerName.trim() : '';
+
+                        if (savedPlayerName.length < 2) {
+                            this.clearState();
+                            this.showPlayerEntry();
+                            return;
+                        }
 
                         const hasValidQuestions = this.isValidSavedQuestions(state.questions);
                         const hasValidProgress =
@@ -2629,10 +3021,19 @@
                             typeof state.lives === 'number' &&
                             state.currentQuestion > 0 &&
                             state.lives > 0 &&
-                            state.currentQuestion < ((state.questions && state.questions.length) || 0);
+                            state.currentQuestion < (state.questions?.length || 0);
 
                         if (hasValidQuestions && hasValidProgress) {
-                            Object.assign(this.state, state);
+                            Object.assign(this.state, {
+                                ...state,
+                                playerName: savedPlayerName,
+                                correctStreak: Number.isFinite(Number(state.correctStreak))
+                                    ? Math.max(0, Math.floor(Number(state.correctStreak)))
+                                    : 0,
+                                isQuestionLoading: false,
+                                questionLoadToken: 0
+                            });
+
                             if (!this.state.playerId) {
                                 this.state.playerId = this.createLeaderboardSessionId();
                             }
@@ -2654,9 +3055,9 @@
                             
                             // Resume game
                             this.showScreen('gameScreen');
-                            this.prefetchUpcomingQuestionAssets(this.state.currentQuestion, 3);
                             this.loadQuestion();
-                            this.enqueueLeaderboardSnapshot('in_progress');
+                            this.captureTopScoreBeforeRun();
+                            void this.saveResult(this.buildResultPayload('in_progress'), { force: true });
                             
                             // Update audio toggle
                             document.getElementById('audioToggle').textContent = 
@@ -2685,19 +3086,17 @@
             game.init();
         });
 
-        // Real-time validation for player details
+        // Real-time validation for player name
         document.addEventListener('DOMContentLoaded', () => {
             const nameInput = document.getElementById('playerName');
             const nameError = document.getElementById('nameError');
 
-            if (nameInput) {
-                nameInput.addEventListener('input', () => {
-                    if (nameInput.value.trim().length >= 2) {
-                        nameError.classList.remove('show');
-                        nameInput.classList.remove('error');
-                    }
-                });
-            }
+            nameInput?.addEventListener('input', () => {
+                if (nameInput.value.trim().length >= 2) {
+                    nameError.classList.remove('show');
+                    nameInput.classList.remove('error');
+                }
+            });
         });
     </script>
 </body>
