@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOHO Leaderboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #D45BE4;
+            --secondary: #8B80F0;
+            --accent: #5C4BEE;
+            --dark: #EEF0FF;
+            --darker: #FAF9FF;
+            --light: #5C4BEE;
+            --success: #08DDEC;
+            --error: #F46AC8;
+            --purple: #8E84F6;
+            --neon-cyan: #08DDEC;
+            --neon-lime: #7CFFB2;
+            --neon-sun: #FFD86B;
+            --neon-coral: #FF8A8A;
+            --neon-sky: #73E7FF;
+            --surface: rgba(248, 247, 255, 0.88);
+            --surface-strong: rgba(255, 255, 255, 0.94);
+            --surface-soft: rgba(240, 238, 255, 0.86);
+            --border-strong: rgba(139, 128, 240, 0.36);
+            --border-soft: rgba(139, 128, 240, 0.24);
+            --text-main: #4E48A9;
+            --text-muted: #7872C7;
+            --glow-primary: rgba(212, 91, 228, 0.28);
+            --shadow-soft: 0 14px 32px rgba(124, 116, 240, 0.16);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: linear-gradient(135deg, var(--darker) 0%, #F0EEFF 48%, #E8FBFF 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            min-height: 100dvh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .bg-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #08DDEC;
+            border-radius: 0;
+            clip-path: polygon(50% 0%, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0% 50%, 38% 38%);
+            opacity: 0.65;
+            box-shadow: 0 0 8px rgba(8, 221, 236, 0.72);
+            animation: twinkle 2.8s infinite ease-in-out;
+        }
+
+        @keyframes twinkle {
+            0%, 100% {
+                opacity: 0.18;
+                transform: scale(0.7);
+            }
+            50% {
+                opacity: 0.95;
+                transform: scale(1.25);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .particle,
+            .title {
+                animation: none;
+            }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1280px;
+            width: min(100%, 1280px);
+            margin: 0 auto;
+            padding: clamp(14px, 2.6vw, 24px) clamp(12px, 2.4vw, 20px) clamp(20px, 4vw, 40px);
+            min-height: 100vh;
+            min-height: 100dvh;
+        }
+
+        .header-card {
+            background: var(--surface-strong);
+            border: 2px solid var(--border-strong);
+            border-radius: 24px;
+            padding: clamp(24px, 4vw, 34px) clamp(16px, 3vw, 24px) clamp(22px, 3.4vw, 30px);
+            box-shadow: var(--shadow-soft);
+            backdrop-filter: blur(10px);
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: clamp(1.4rem, 5vw, 2.8rem);
+            line-height: 1.25;
+            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--neon-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.02);
+            }
+        }
+
+        .subtitle {
+            margin-top: 16px;
+            color: var(--accent);
+            font-size: clamp(0.98rem, 2.5vw, 1.1rem);
+            font-weight: 600;
+        }
+
+        .live-status {
+            margin-top: 8px;
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 0.02em;
+        }
+
+        .live-status.online {
+            color: var(--success);
+        }
+
+        .live-status.offline {
+            color: var(--error);
+        }
+
+        .actions {
+            position: absolute;
+            top: clamp(12px, 2vw, 20px);
+            left: clamp(12px, 2vw, 20px);
+            right: clamp(12px, 2vw, 20px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            pointer-events: none;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 50px;
+            padding: clamp(10px, 1.8vw, 12px) clamp(16px, 2.8vw, 24px);
+            font-size: clamp(0.9rem, 2.1vw, 0.98rem);
+            font-weight: 700;
+            font-family: 'Space Grotesk', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #fff;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:active::before {
+            width: 220px;
+            height: 220px;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--purple), var(--neon-cyan));
+            box-shadow: 0 10px 24px rgba(115, 231, 255, 0.30);
+        }
+
+        .icon-btn {
+            width: clamp(42px, 7.2vw, 52px);
+            height: clamp(42px, 7.2vw, 52px);
+            padding: 0;
+            border-radius: 50%;
+            font-size: clamp(1.15rem, 2.8vw, 1.45rem);
+            line-height: 1;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--error), var(--neon-coral));
+            box-shadow: 0 10px 24px rgba(244, 106, 200, 0.30);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: clamp(10px, 1.8vw, 14px);
+            margin-bottom: 18px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 2px solid var(--border-soft);
+            border-radius: 18px;
+            padding: clamp(14px, 2.2vw, 18px);
+            text-align: center;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .stat-value {
+            font-family: 'Press Start 2P', cursive;
+            font-size: clamp(1.1rem, 3.2vw, 1.6rem);
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 0.98rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .table-card {
+            background: var(--surface-strong);
+            border: 2px solid var(--border-strong);
+            border-radius: 22px;
+            box-shadow: var(--shadow-soft);
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 840px;
+        }
+
+        thead {
+            background: linear-gradient(90deg, rgba(139, 128, 240, 0.16), rgba(8, 221, 236, 0.14));
+        }
+
+        th,
+        td {
+            padding: clamp(12px, 1.8vw, 20px) clamp(10px, 1.6vw, 20px);
+            text-align: center;
+            border-bottom: 1px solid var(--border-soft);
+            vertical-align: middle;
+        }
+
+        th {
+            font-size: 0.88rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--accent);
+        }
+
+        td {
+            font-size: 0.98rem;
+            color: var(--text-main);
+        }
+
+        tbody td {
+            transition: background-color 220ms ease;
+        }
+
+        tbody tr {
+            will-change: transform;
+        }
+
+        tbody tr:hover {
+            background: rgba(8, 221, 236, 0.10);
+        }
+
+        tbody tr.rank-rising {
+            position: relative;
+            z-index: 1;
+        }
+
+        tbody tr.rank-falling {
+            position: relative;
+            z-index: 1;
+        }
+
+        tbody tr.rank-rising td {
+            background: rgba(8, 221, 236, 0.16);
+        }
+
+        tbody tr.rank-falling td {
+            background: rgba(244, 106, 200, 0.12);
+        }
+
+        .rank-badge {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.95rem;
+            color: var(--accent);
+            min-width: 2.6ch;
+            display: inline-block;
+        }
+
+        .rank-1 { color: var(--neon-sun); }
+        .rank-2 { color: var(--neon-cyan); }
+        .rank-3 { color: var(--primary); }
+
+        .score {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1rem;
+            color: var(--accent);
+        }
+
+        .outcome {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .outcome-victory {
+            background: rgba(8, 221, 236, 0.16);
+            color: var(--success);
+            border: 1px solid rgba(8, 221, 236, 0.34);
+        }
+
+        .outcome-game-over {
+            background: rgba(244, 106, 200, 0.14);
+            color: var(--error);
+            border: 1px solid rgba(244, 106, 200, 0.32);
+        }
+
+        .outcome-in-progress {
+            background: rgba(255, 188, 77, 0.14);
+            color: #ffd27f;
+            border: 1px solid rgba(255, 188, 77, 0.32);
+        }
+
+        .status {
+            padding: 26px 16px;
+            text-align: center;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                padding: 18px 14px 28px;
+            }
+
+            .header-card {
+                padding: 86px 16px 22px;
+            }
+
+            .actions {
+                top: 16px;
+                left: 16px;
+                right: 16px;
+            }
+
+            table {
+                min-width: 760px;
+            }
+        }
+
+        @media (max-width: 860px) {
+            .header-card {
+                padding: 22px 16px 18px;
+            }
+
+            .actions {
+                position: static;
+                margin-top: 16px;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+            }
+
+            .stats {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            table {
+                min-width: 680px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            th,
+            td {
+                padding: 14px 12px;
+            }
+
+            table {
+                min-width: 620px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            table {
+                min-width: 560px;
+            }
+
+            .status {
+                font-size: 0.95rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-particles" id="particles"></div>
+
+    <div class="container">
+        <section class="header-card">
+            <h1 class="title">ZOGO<br>LEADERBOARD</h1>
+            <p class="subtitle">Ranked by score (highest to lowest)</p>
+            <!-- <p class="live-status" id="liveStatus">Connecting live updates...</p> -->
+            <div class="actions">
+                <button class="btn btn-danger" id="clearBtn" type="button" style="display:none;">Clear Records</button>
+                <button class="btn btn-secondary icon-btn" id="refreshBtn" type="button" aria-label="Refresh leaderboard" title="Refresh leaderboard">&#x21bb;</button>
+            </div>
+        </section>
+
+        <section class="stats">
+            <article class="stat-card">
+                <div class="stat-value" id="totalPlayers">0</div>
+                <div class="stat-label">Total Players</div>
+            </article>
+            <article class="stat-card">
+                <div class="stat-value" id="highestScore">0</div>
+                <div class="stat-label">Highest Score</div>
+            </article>
+            <article class="stat-card">
+                <div class="stat-value" id="averageScore">0</div>
+                <div class="stat-label">Average Score</div>
+            </article>
+        </section>
+
+        <section class="table-card">
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Name</th>
+                            <th>Score</th>
+                            <th>Correct</th>
+                            <th>Accuracy</th>
+                            <th>Outcome</th>
+                            <th>Played At</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardBody">
+                        <tr><td class="status" colspan="7">Loading leaderboard...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const APP_VERSION = '2026.02.21.3';
+        const LEADERBOARD_LIMIT = 100;
+        const POLLING_INTERVAL_MS = 2000;
+        const SSE_RECONNECT_DELAY_MS = 2000;
+        const DEFAULT_API_BASE = 'https://zogo.onrender.com';
+        const ADMIN_MODE = new URLSearchParams(window.location.search).get('admin') === '1';
+        const API_BASE = (() => {
+            let savedApiBase = '';
+            try {
+                savedApiBase = localStorage.getItem('zogoApiBase') || '';
+            } catch (error) {
+                savedApiBase = '';
+            }
+            const explicit = (window.ZOGO_API_BASE || savedApiBase || '').trim();
+            if (explicit) return explicit.replace(/\/+$/, '');
+            if (window.location.hostname.endsWith('github.io')) {
+                return DEFAULT_API_BASE;
+            }
+            return '';
+        })();
+        const apiUrl = (path) => (API_BASE ? `${API_BASE}${path}` : path);
+
+        const leaderboardState = {
+            resultsById: new Map(),
+            eventSource: null,
+            pollingTimer: null,
+            reconnectTimer: null,
+            renderScheduled: false,
+            fetchInFlight: false,
+            pendingReload: false,
+            streamOpened: false,
+            disableStream: false
+        };
+
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            if (!particlesContainer) return;
+
+            particlesContainer.innerHTML = '';
+            const isMobile = window.matchMedia('(max-width: 768px)').matches;
+            const particleCount = isMobile ? 150 : 220;
+
+            for (let index = 0; index < particleCount; index += 1) {
+                const particle = document.createElement('span');
+                particle.className = 'particle';
+
+                const tierRoll = Math.random();
+                let size = 2;
+                if (tierRoll < 0.55) {
+                    size = 1.9 + Math.random() * 0.9;
+                } else if (tierRoll < 0.88) {
+                    size = 3.0 + Math.random() * 1.1;
+                } else {
+                    size = 4.2 + Math.random() * 1.2;
+                }
+
+                const sizePx = size.toFixed(2);
+                const glowBlur = (size * 2.4).toFixed(2);
+                const glowAlpha = (0.55 + Math.min(size / 10, 0.2)).toFixed(2);
+                const starOpacity = (0.45 + Math.min(size / 10, 0.25)).toFixed(2);
+
+                particle.style.width = `${sizePx}px`;
+                particle.style.height = `${sizePx}px`;
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                particle.style.opacity = starOpacity;
+                particle.style.boxShadow = `0 0 ${glowBlur}px rgba(8, 221, 236, ${glowAlpha})`;
+                particle.style.animationDelay = `${(Math.random() * 4).toFixed(2)}s`;
+                particle.style.animationDuration = `${(1.5 + Math.random() * 2.6).toFixed(2)}s`;
+
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        function setLiveStatus(message, isOnline) {
+            const statusElement = document.getElementById('liveStatus');
+            if (!statusElement) return;
+            statusElement.textContent = message;
+            statusElement.classList.toggle('online', Boolean(isOnline));
+            statusElement.classList.toggle('offline', !isOnline);
+        }
+
+        function parseNumber(value) {
+            const parsed = Number.parseInt(value, 10);
+            return Number.isFinite(parsed) ? parsed : 0;
+        }
+
+        function normalizeResult(result) {
+            if (!result || typeof result !== 'object') return null;
+
+            const id = parseNumber(result.id);
+            if (id <= 0) return null;
+
+            const createdAt = typeof result.createdAt === 'string' ? result.createdAt : '';
+            const createdAtMs = Date.parse(createdAt);
+
+            return {
+                id,
+                playerName: String(
+                    result.playerName !== undefined && result.playerName !== null
+                        ? result.playerName
+                        : ''
+                ).trim() || 'Unknown',
+                score: parseNumber(result.score),
+                correctCount: parseNumber(result.correctCount),
+                totalAnswered: parseNumber(result.totalAnswered),
+                accuracy: parseNumber(result.accuracy),
+                outcome: result.outcome === 'victory'
+                    ? 'victory'
+                    : result.outcome === 'in_progress'
+                        ? 'in_progress'
+                        : 'game_over',
+                createdAt,
+                createdAtMs: Number.isFinite(createdAtMs) ? createdAtMs : 0
+            };
+        }
+
+        function compareResults(a, b) {
+            if (b.score !== a.score) return b.score - a.score;
+            if (b.accuracy !== a.accuracy) return b.accuracy - a.accuracy;
+            if (a.createdAtMs !== b.createdAtMs) return a.createdAtMs - b.createdAtMs;
+            return a.id - b.id;
+        }
+
+        function getSortedResults() {
+            return Array.from(leaderboardState.resultsById.values()).sort(compareResults);
+        }
+
+        function scheduleRender() {
+            if (leaderboardState.renderScheduled) return;
+
+            leaderboardState.renderScheduled = true;
+            window.requestAnimationFrame(() => {
+                leaderboardState.renderScheduled = false;
+                renderRows(getSortedResults());
+            });
+        }
+
+        function formatDate(value) {
+            const parsed = new Date(value);
+            if (Number.isNaN(parsed.getTime())) return '-';
+            const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+            const day = parsed.getDate();
+            const month = monthNames[parsed.getMonth()] || '';
+            const hours = String(parsed.getHours()).padStart(2, '0');
+            const minutes = String(parsed.getMinutes()).padStart(2, '0');
+            return `${day} ${month}, ${hours}:${minutes}`;
+        }
+
+        function normalizeOutcome(value) {
+            if (value === 'victory') return 'Victory';
+            if (value === 'in_progress') return 'In Progress';
+            return 'Game Over';
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
+        function updateStats(results) {
+            const totalPlayers = results.length;
+            const highestScore = totalPlayers > 0 ? results[0].score : 0;
+            const totalScore = results.reduce((sum, result) => sum + result.score, 0);
+            const averageScore = totalPlayers > 0 ? Math.round(totalScore / totalPlayers) : 0;
+
+            document.getElementById('totalPlayers').textContent = totalPlayers;
+            document.getElementById('highestScore').textContent = highestScore;
+            document.getElementById('averageScore').textContent = averageScore;
+        }
+
+        function captureRowPositions(tbody) {
+            const positions = new Map();
+            const rows = tbody.querySelectorAll('tr[data-result-id]');
+            for (const row of rows) {
+                const resultId = row.dataset.resultId;
+                if (!resultId) continue;
+                positions.set(resultId, row.getBoundingClientRect().top);
+            }
+            return positions;
+        }
+
+        function animateRowsMovingUp(tbody, previousPositions) {
+            if (!previousPositions || previousPositions.size === 0) return;
+
+            const movingRows = [];
+            const rows = tbody.querySelectorAll('tr[data-result-id]');
+            for (const row of rows) {
+                const resultId = row.dataset.resultId;
+                if (!resultId || !previousPositions.has(resultId)) continue;
+
+                const previousTop = previousPositions.get(resultId);
+                const currentTop = row.getBoundingClientRect().top;
+                const deltaY = previousTop - currentTop;
+                if (Math.abs(deltaY) <= 1) continue;
+
+                movingRows.push({ row, deltaY });
+            }
+
+            if (movingRows.length === 0) return;
+
+            for (const { row, deltaY } of movingRows) {
+                row.classList.add(deltaY > 0 ? 'rank-rising' : 'rank-falling');
+                row.style.transition = 'none';
+                row.style.transform = `translateY(${deltaY}px)`;
+            }
+
+            window.requestAnimationFrame(() => {
+                for (const { row } of movingRows) {
+                    row.style.transition = 'transform 460ms cubic-bezier(0.22, 1, 0.36, 1)';
+                    row.style.transform = 'translateY(0)';
+
+                    const cleanup = () => {
+                        row.style.transition = '';
+                        row.style.transform = '';
+                        row.classList.remove('rank-rising');
+                        row.classList.remove('rank-falling');
+                    };
+
+                    row.addEventListener('transitionend', cleanup, { once: true });
+                    window.setTimeout(cleanup, 520);
+                }
+            });
+        }
+
+        function renderRows(results) {
+            const tbody = document.getElementById('leaderboardBody');
+            const previousPositions = captureRowPositions(tbody);
+
+            if (results.length === 0) {
+                tbody.innerHTML = '<tr><td class="status" colspan="7">No results yet. Play a game to populate this leaderboard.</td></tr>';
+                updateStats(results);
+                return;
+            }
+
+            const rows = results.map((result, index) => {
+                const rank = index + 1;
+                const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : '';
+                const outcomeClass = result.outcome === 'victory'
+                    ? 'outcome-victory'
+                    : result.outcome === 'in_progress'
+                        ? 'outcome-in-progress'
+                        : 'outcome-game-over';
+
+                return `
+                    <tr data-result-id="${result.id}">
+                        <td><span class="rank-badge ${rankClass}">#${rank}</span></td>
+                        <td>${escapeHtml(result.playerName)}</td>
+                        <td><span class="score">${result.score}</span></td>
+                        <td>${result.correctCount}/${result.totalAnswered}</td>
+                        <td>${result.accuracy}%</td>
+                        <td><span class="outcome ${outcomeClass}">${normalizeOutcome(result.outcome)}</span></td>
+                        <td>${formatDate(result.createdAt)}</td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = rows.join('');
+            animateRowsMovingUp(tbody, previousPositions);
+            updateStats(results);
+        }
+
+        function mergeResults(results, replaceExisting = false) {
+            if (replaceExisting) {
+                leaderboardState.resultsById.clear();
+            }
+
+            for (const item of results) {
+                const normalized = normalizeResult(item);
+                if (!normalized) continue;
+
+                leaderboardState.resultsById.set(normalized.id, normalized);
+            }
+
+            scheduleRender();
+        }
+
+        async function loadLeaderboard({ showLoading = false } = {}) {
+            if (leaderboardState.fetchInFlight) {
+                leaderboardState.pendingReload = true;
+                return;
+            }
+
+            const tbody = document.getElementById('leaderboardBody');
+            if (showLoading && leaderboardState.resultsById.size === 0) {
+                tbody.innerHTML = '<tr><td class="status" colspan="7">Loading leaderboard...</td></tr>';
+            }
+
+            leaderboardState.fetchInFlight = true;
+
+            try {
+                const response = await fetch(apiUrl(`/api/results?limit=${LEADERBOARD_LIMIT}&sort=leaderboard`), {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Game-Version': APP_VERSION
+                    },
+                    cache: 'no-store'
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Request failed: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const results = Array.isArray(data.results) ? data.results : [];
+                mergeResults(results, true);
+            } catch (error) {
+                if (leaderboardState.resultsById.size === 0) {
+                    tbody.innerHTML = '<tr><td class="status" colspan="7">Could not load leaderboard. Please try again shortly.</td></tr>';
+                    document.getElementById('totalPlayers').textContent = '0';
+                    document.getElementById('highestScore').textContent = '0';
+                    document.getElementById('averageScore').textContent = '0';
+                }
+                console.warn('Could not load leaderboard.', error);
+            } finally {
+                leaderboardState.fetchInFlight = false;
+                if (leaderboardState.pendingReload) {
+                    leaderboardState.pendingReload = false;
+                    loadLeaderboard();
+                }
+            }
+        }
+
+        function handleLiveEventMessage(event) {
+            try {
+                const data = JSON.parse(event.data);
+                if (!data || !data.result) {
+                    loadLeaderboard();
+                    return;
+                }
+                mergeResults([data.result], false);
+            } catch (error) {
+                loadLeaderboard();
+            }
+        }
+
+        function handleLeaderboardCleared() {
+            leaderboardState.resultsById.clear();
+            scheduleRender();
+        }
+
+        function stopPollingFallback() {
+            if (!leaderboardState.pollingTimer) return;
+            clearInterval(leaderboardState.pollingTimer);
+            leaderboardState.pollingTimer = null;
+        }
+
+        function startPollingFallback() {
+            if (leaderboardState.pollingTimer) return;
+            loadLeaderboard();
+            leaderboardState.pollingTimer = setInterval(() => {
+                loadLeaderboard();
+            }, POLLING_INTERVAL_MS);
+        }
+
+        function scheduleReconnect() {
+            if (leaderboardState.disableStream) return;
+            if (leaderboardState.reconnectTimer) return;
+            leaderboardState.reconnectTimer = setTimeout(() => {
+                leaderboardState.reconnectTimer = null;
+                connectLiveUpdates();
+            }, SSE_RECONNECT_DELAY_MS);
+        }
+
+        function connectLiveUpdates() {
+            if (leaderboardState.disableStream) {
+                setLiveStatus('Live stream unavailable. Auto-refresh every 2s.', false);
+                startPollingFallback();
+                return;
+            }
+
+            if (!('EventSource' in window)) {
+                setLiveStatus('Live updates unavailable. Auto-refresh every 2s.', false);
+                startPollingFallback();
+                return;
+            }
+
+            if (leaderboardState.eventSource) {
+                leaderboardState.eventSource.close();
+                leaderboardState.eventSource = null;
+            }
+            leaderboardState.streamOpened = false;
+
+            setLiveStatus('Connecting live updates...', false);
+            const stream = new EventSource(apiUrl('/api/results/stream'));
+            leaderboardState.eventSource = stream;
+
+            stream.addEventListener('open', () => {
+                leaderboardState.streamOpened = true;
+                stopPollingFallback();
+                setLiveStatus('Live updates active', true);
+            });
+
+            stream.addEventListener('result_created', handleLiveEventMessage);
+            stream.addEventListener('result_updated', handleLiveEventMessage);
+            stream.addEventListener('results_cleared', handleLeaderboardCleared);
+
+            stream.onerror = () => {
+                const openedBefore = leaderboardState.streamOpened;
+                if (leaderboardState.eventSource) {
+                    leaderboardState.eventSource.close();
+                    leaderboardState.eventSource = null;
+                }
+                startPollingFallback();
+
+                if (!openedBefore) {
+                    leaderboardState.disableStream = true;
+                    setLiveStatus('Live stream unavailable. Auto-refresh every 2s.', false);
+                    return;
+                }
+
+                setLiveStatus('Live updates disconnected. Auto-refresh active.', false);
+                scheduleReconnect();
+            };
+        }
+
+        async function clearLeaderboard() {
+            const shouldClear = window.confirm('Clear all leaderboard records? This cannot be undone.');
+            if (!shouldClear) return;
+
+            const tbody = document.getElementById('leaderboardBody');
+            tbody.innerHTML = '<tr><td class="status" colspan="7">Clearing records...</td></tr>';
+
+            try {
+                const response = await fetch(apiUrl('/api/results'), {
+                    method: 'DELETE',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Game-Version': APP_VERSION
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Request failed: ${response.status}`);
+                }
+
+                handleLeaderboardCleared();
+            } catch (error) {
+                tbody.innerHTML = '<tr><td class="status" colspan="7">Could not clear records. Please try again.</td></tr>';
+            }
+        }
+
+        document.getElementById('refreshBtn').addEventListener('click', loadLeaderboard);
+        document.getElementById('clearBtn').addEventListener('click', clearLeaderboard);
+
+        window.addEventListener('DOMContentLoaded', () => {
+            createParticles();
+            loadLeaderboard({ showLoading: true });
+            connectLiveUpdates();
+            if (ADMIN_MODE) {
+                document.getElementById('clearBtn').style.display = 'inline-flex';
+            } else {
+                document.getElementById('clearBtn').style.display = 'none';
+            }
+        });
+
+        window.addEventListener('beforeunload', () => {
+            if (leaderboardState.eventSource) {
+                leaderboardState.eventSource.close();
+            }
+            stopPollingFallback();
+            if (leaderboardState.reconnectTimer) {
+                clearTimeout(leaderboardState.reconnectTimer);
+            }
+        });
+    </script>
+</body>
+</html>

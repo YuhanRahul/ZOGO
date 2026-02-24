@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: zogo-game
+    runtime: python
+    plan: starter
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py
+    healthCheckPath: /healthz
+    autoDeployTrigger: commit
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: zogo-db
+          property: connectionString
+      - key: DB_STATEMENT_TIMEOUT_MS
+        value: "7000"
+      - key: DB_POOL_MIN_SIZE
+        value: "1"
+      - key: DB_POOL_MAX_SIZE
+        value: "5"
+      - key: LEADERBOARD_CACHE_TTL_SECONDS
+        value: "3"
+      - key: EXPECTED_QUESTION_COUNT
+        value: "50"
+      - key: ALLOWED_ORIGINS
+        value: "*"
+      - key: LEADERBOARD_ADMIN_TOKEN
+        generateValue: true
+
+databases:
+  - name: zogo-db
+    plan: basic-256mb
+    region: oregon
+    ipAllowList: []

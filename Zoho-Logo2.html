@@ -1,0 +1,2704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zoho Logo Challenge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&amp;family=Space+Grotesk:wght@400;600;700&amp;display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #D45BE4;
+            --secondary: #8B80F0;
+            --accent: #5C4BEE;
+            --dark: #EEF0FF;
+            --darker: #FAF9FF;
+            --light: #5C4BEE;
+            --success: #08DDEC;
+            --error: #F46AC8;
+            --purple: #8E84F6;
+            --neon-cyan: #08DDEC;
+            --neon-lime: #7CFFB2;
+            --neon-sun: #FFD86B;
+            --neon-coral: #FF8A8A;
+            --neon-sky: #73E7FF;
+            --surface: rgba(248, 247, 255, 0.88);
+            --surface-strong: rgba(255, 255, 255, 0.94);
+            --surface-soft: rgba(240, 238, 255, 0.86);
+            --border-strong: rgba(139, 128, 240, 0.36);
+            --border-soft: rgba(139, 128, 240, 0.24);
+            --text-main: #4E48A9;
+            --text-muted: #7872C7;
+            --glow-primary: rgba(212, 91, 228, 0.28);
+            --shadow-soft: 0 14px 32px rgba(124, 116, 240, 0.16);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: linear-gradient(135deg, var(--darker) 0%, #F0EEFF 48%, #E8FBFF 100%);
+            color: var(--text-main);
+            overflow-x: hidden;
+            min-height: 100vh;
+            min-height: 100dvh;
+            position: relative;
+        }
+
+        /* Twinkling star background */
+        .bg-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #08DDEC;
+            border-radius: 0;
+            clip-path: polygon(50% 0%, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0% 50%, 38% 38%);
+            opacity: 0.65;
+            box-shadow: 0 0 8px rgba(8, 221, 236, 0.72);
+            animation: twinkle 2.8s infinite ease-in-out;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.18; transform: scale(0.7); }
+            50% { opacity: 0.95; transform: scale(1.25); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1024px;
+            width: min(100%, 1024px);
+            margin: 0 auto;
+            padding: clamp(12px, 2.2vw, 24px);
+            min-height: 100vh;
+            min-height: 100dvh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .screen {
+            display: none;
+            width: 100%;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Landing Screen */
+        .landing {
+            text-align: center;
+        }
+
+        .logo-title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: clamp(2rem, 8vw, 4rem);
+            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--neon-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        .logo-title-gap {
+            display: block;
+            margin-top: 0.25em;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .subtitle {
+            font-size: 1.4rem;
+            color: var(--accent);
+            margin-bottom: 40px;
+            font-weight: 600;
+        }
+
+        .game-info {
+            background: var(--surface);
+            border: 2px solid var(--border-strong);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 30px auto;
+            max-width: 500px;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .game-info h3 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+            font-size: 1.1rem;
+        }
+
+        .info-icon {
+            font-size: 1.8rem;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 52%, var(--neon-cyan) 100%);
+            color: white;
+            border: none;
+            padding: clamp(14px, 2.2vw, 18px) clamp(28px, 5vw, 50px);
+            font-size: clamp(1rem, 2.4vw, 1.3rem);
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Space Grotesk', sans-serif;
+            box-shadow: 0 10px 28px rgba(139, 128, 240, 0.34);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 14px 34px rgba(8, 221, 236, 0.36);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-home {
+            background: linear-gradient(135deg, var(--purple), var(--neon-cyan));
+            box-shadow: 0 10px 24px rgba(115, 231, 255, 0.30);
+        }
+
+        /* Player Entry */
+        .player-entry {
+            text-align: center;
+        }
+
+        .entry-card {
+            background: var(--surface);
+            border: 2px solid var(--border-strong);
+            border-radius: 20px;
+            padding: clamp(24px, 4vw, 40px);
+            width: min(100%, 560px);
+            margin: 0 auto;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .entry-card h2 {
+            font-size: clamp(1.5rem, 4.8vw, 2rem);
+            color: var(--secondary);
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 30px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            color: var(--accent);
+            text-align: left;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 1.1rem;
+            border: 2px solid var(--border-soft);
+            border-radius: 15px;
+            background: var(--surface-strong);
+            color: var(--text-main);
+            font-family: 'Space Grotesk', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--neon-cyan);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(8, 221, 236, 0.24);
+        }
+
+        .input-group input.error {
+            border-color: var(--error);
+            box-shadow: 0 0 12px rgba(244, 106, 200, 0.30);
+        }
+
+        .error-msg {
+            color: var(--error);
+            font-size: 0.9rem;
+            margin-top: 8px;
+            text-align: left;
+            display: none;
+        }
+
+        .error-msg.show {
+            display: block;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* Game Screen */
+        .game-hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: clamp(12px, 2vw, 24px);
+            padding: clamp(14px, 2.5vw, 20px);
+            background: var(--surface-strong);
+            border-radius: 20px;
+            margin-bottom: clamp(18px, 2.4vw, 24px);
+            backdrop-filter: blur(10px);
+            border: 2px solid var(--border-soft);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .hud-item {
+            display: flex;
+            align-items: center;
+            gap: clamp(8px, 1.5vw, 12px);
+        }
+
+        .hud-item span {
+            font-size: clamp(0.95rem, 2.4vw, 1.2rem);
+        }
+
+        .score {
+            font-size: clamp(1.3rem, 4.5vw, 2rem);
+            font-weight: 700;
+            color: var(--accent);
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        .score.pulse {
+            animation: scorePulse 0.5s ease;
+        }
+
+        @keyframes scorePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+        }
+
+        .lives {
+            display: flex;
+            gap: 8px;
+        }
+
+        .life {
+            font-size: clamp(1.45rem, 4.2vw, 2rem);
+            animation: heartBeat 1.5s infinite;
+        }
+
+        @keyframes heartBeat {
+            0%, 100% { transform: scale(1); }
+            10% { transform: scale(1.1); }
+            20% { transform: scale(1); }
+        }
+
+        .life.lost {
+            opacity: 0.2;
+            animation: none;
+        }
+
+        /* Timer Circle */
+        .timer-container {
+            position: relative;
+            width: clamp(66px, 12vw, 84px);
+            height: clamp(66px, 12vw, 84px);
+        }
+
+        .timer-circle {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .timer-bg {
+            fill: none;
+            stroke: rgba(115, 231, 255, 0.36);
+            stroke-width: 8;
+        }
+
+        .timer-progress {
+            fill: none;
+            stroke: var(--accent);
+            stroke-width: 8;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s linear;
+        }
+
+        .timer-progress.warning {
+            stroke: var(--neon-sun);
+            animation: timerPulse 0.5s infinite;
+        }
+
+        @keyframes timerPulse {
+            0%, 100% { stroke-width: 8; }
+            50% { stroke-width: 10; }
+        }
+
+        .timer-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: clamp(1rem, 3vw, 1.5rem);
+            font-weight: 700;
+            font-family: 'Press Start 2P', cursive;
+            color: var(--text-main);
+        }
+
+        /* Question Area */
+        .question-section {
+            text-align: center;
+            margin-bottom: clamp(16px, 2.4vw, 24px);
+        }
+
+        .question-counter {
+            font-size: clamp(0.95rem, 2.4vw, 1.1rem);
+            color: var(--primary);
+            margin-bottom: clamp(8px, 1.3vw, 12px);
+            font-weight: 600;
+        }
+
+        .question-text {
+            font-size: clamp(1.15rem, 3.5vw, 1.65rem);
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: clamp(14px, 2.2vw, 20px);
+            line-height: 1.4;
+        }
+
+        /* Logo Options Grid - 2x2 Layout */
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: clamp(10px, 1.6vw, 16px);
+            margin-bottom: clamp(14px, 2vw, 22px);
+        }
+
+        .option-card {
+            background: var(--surface);
+            border: 3px solid var(--border-strong);
+            border-radius: clamp(14px, 2vw, 20px);
+            padding: clamp(12px, 2vw, 22px);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 24px rgba(139, 128, 240, 0.18);
+        }
+
+        .option-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(8, 221, 236, 0.18) 0%, transparent 72%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .option-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: var(--neon-cyan);
+            box-shadow: 0 16px 34px rgba(8, 221, 236, 0.30);
+        }
+
+        .option-card:hover::before {
+            opacity: 1;
+        }
+
+        .option-card.disabled {
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        .option-card.correct {
+            background: rgba(8, 221, 236, 0.18);
+            border-color: var(--success);
+            animation: correctPulse 0.6s ease;
+        }
+
+        .option-card.wrong {
+            background: rgba(244, 106, 200, 0.18);
+            border-color: var(--error);
+            animation: wrongShake 0.6s ease;
+        }
+
+        .option-media {
+            width: 100%;
+            background: #FCFCFF;
+            border-radius: 14px;
+            padding: clamp(10px, 1.4vw, 14px);
+            box-shadow: inset 0 0 0 1px rgba(139, 128, 240, 0.24);
+            aspect-ratio: 16 / 9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes correctPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes wrongShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-15px) rotate(-5deg); }
+            75% { transform: translateX(15px) rotate(5deg); }
+        }
+
+        .option-logo {
+            display: block;
+            width: 100%;
+            height: 100%;
+            max-height: clamp(112px, 17vh, 188px);
+            object-fit: contain;
+            margin-bottom: 0;
+            filter: brightness(1.04) saturate(1.12);
+        }
+
+        .option-logo-fallback {
+            width: 100%;
+            height: 100%;
+            min-height: clamp(112px, 17vh, 188px);
+            margin-bottom: 0;
+            border: 2px dashed rgba(139, 128, 240, 0.42);
+            border-radius: 12px;
+            align-items: center;
+            justify-content: center;
+            color: var(--secondary);
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            background: #ffffff;
+        }
+
+        .option-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        /* End Screens */
+        .end-screen {
+            text-align: center;
+        }
+
+        .end-card {
+            background: var(--surface-strong);
+            border: 2px solid var(--border-strong);
+            border-radius: 20px;
+            padding: clamp(24px, 4vw, 50px);
+            width: min(100%, 680px);
+            margin: 0 auto;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .end-actions {
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .end-title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: clamp(1.8rem, 6vw, 3rem);
+            margin-bottom: 30px;
+            animation: fadeInScale 0.8s ease;
+        }
+
+        .end-title.victory {
+            background: linear-gradient(135deg, var(--primary), var(--accent), var(--neon-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .end-title.defeat {
+            color: var(--error);
+        }
+
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.5); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: clamp(12px, 2vw, 20px);
+            margin: 30px 0;
+        }
+
+        .stat-item {
+            background: var(--surface-soft);
+            padding: clamp(14px, 2vw, 20px);
+            border-radius: 15px;
+            border: 2px solid var(--border-soft);
+        }
+
+        .stat-value {
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            font-weight: 700;
+            color: var(--accent);
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin-top: 10px;
+            opacity: 0.8;
+        }
+
+        /* Audio Toggle */
+        .audio-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--surface-soft);
+            border: 2px solid var(--border-strong);
+            border-radius: 50%;
+            width: clamp(46px, 8vw, 60px);
+            height: clamp(46px, 8vw, 60px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: clamp(1.1rem, 2.6vw, 1.5rem);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 10px 24px rgba(115, 231, 255, 0.28);
+        }
+
+        .audio-toggle:hover {
+            background: var(--surface-strong);
+            transform: scale(1.1);
+        }
+
+        /* Feedback Messages */
+        .feedback {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            font-family: 'Press Start 2P', cursive;
+            font-size: clamp(1.2rem, 5vw, 3rem);
+            padding: clamp(16px, 3.6vw, 40px) clamp(20px, 5vw, 60px);
+            border-radius: 30px;
+            z-index: 2000;
+            pointer-events: none;
+            text-align: center;
+            opacity: 0;
+        }
+
+        .feedback.show {
+            animation: feedbackPop 1s ease;
+        }
+
+        @keyframes feedbackPop {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            10% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            30% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            90% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+        }
+
+        .feedback.correct {
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-lime));
+            color: var(--text-main);
+            box-shadow: 0 16px 36px rgba(8, 221, 236, 0.38);
+        }
+
+        .feedback.wrong {
+            background: linear-gradient(135deg, var(--error), var(--neon-coral));
+            color: white;
+            box-shadow: 0 16px 36px rgba(244, 106, 200, 0.32);
+        }
+
+        .feedback.timeout {
+            background: #08DDEC;
+            color: var(--text-main);
+            box-shadow: 0 16px 36px rgba(8, 221, 236, 0.36);
+        }
+
+        .high-score-popup {
+            position: fixed;
+            top: 22px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+            z-index: 2300;
+        }
+
+        .high-score-popup.show {
+            opacity: 1;
+        }
+
+        .high-score-card {
+            background: rgb(247 246 255 / 94%);
+            border: 3px solid rgba(124, 255, 178, 0.85);
+            border-radius: 999px;
+            box-shadow:
+                0 18px 36px rgba(139, 128, 240, 0.24),
+                0 0 24px rgba(8, 221, 236, 0.26);
+            padding: clamp(12px, 2.6vw, 16px) clamp(20px, 4vw, 34px);
+            text-align: center;
+            transform: translateY(-10px);
+            opacity: 0;
+        }
+
+        .high-score-popup.show .high-score-card {
+            animation: highScoreEnter 0.24s ease forwards;
+        }
+
+        @keyframes highScoreEnter {
+            from {
+                transform: translateY(-10px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .high-score-title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: clamp(0.86rem, 2.4vw, 1.18rem);
+            letter-spacing: 0.08em;
+            line-height: 1.2;
+            color: var(--primary);
+            margin: 0;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(115, 231, 255, 0.28);
+            border-radius: 10px;
+            margin-bottom: clamp(16px, 2.2vw, 24px);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 38%, var(--neon-cyan) 72%, var(--neon-lime) 100%);
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .game-info {
+                max-width: min(100%, 620px);
+            }
+        }
+
+        @media (max-width: 820px) {
+            .game-hud {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .hud-item {
+                justify-content: center;
+            }
+
+            .timer-container {
+                grid-column: 1 / -1;
+                margin: 0 auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .logo-title {
+                font-size: clamp(1.65rem, 8vw, 2rem);
+            }
+
+            .subtitle {
+                font-size: clamp(1rem, 3.8vw, 1.1rem);
+            }
+
+            .game-info {
+                padding: 20px;
+            }
+
+            .entry-card {
+                padding: 22px;
+            }
+
+            .end-actions .btn {
+                width: min(100%, 320px);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .container {
+                align-items: flex-start;
+                padding-top: 12px;
+                padding-bottom: 18px;
+            }
+
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .option-media {
+                aspect-ratio: 16 / 9;
+            }
+
+            .high-score-popup {
+                top: 12px;
+                width: calc(100% - 20px);
+            }
+
+            .high-score-card {
+                border-width: 2px;
+            }
+        }
+
+        @media (max-height: 680px) and (orientation: landscape) {
+            .container {
+                align-items: flex-start;
+                padding-top: 10px;
+                padding-bottom: 12px;
+            }
+
+            .question-section {
+                margin-bottom: 20px;
+            }
+
+            .option-media {
+                aspect-ratio: 21 / 9;
+            }
+        }
+
+        /* Loading animation */
+        .loading {
+            display: inline-block;
+            font-size: 1.5rem;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background particles -->
+    <div class="bg-particles" id="particles"></div>
+
+    <!-- Audio Toggle -->
+    <div class="audio-toggle" id="audioToggle" title="Toggle Audio">🔊</div>
+
+    <!-- Feedback Messages -->
+    <div class="feedback" id="feedback"></div>
+
+    <!-- High Score Popup -->
+    <div class="high-score-popup" id="highScorePopup" aria-live="polite" role="status">
+        <div class="high-score-card">
+            <p class="high-score-title">NEW HIGH SCORE!</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Landing Screen -->
+        <div class="screen active" id="landingScreen">
+            <div class="landing">
+                <h1 class="logo-title"><br>ZOGO<span class="logo-title-gap">CHALLENGE</span></h1>
+                <p class="subtitle">Test Your Zoho Logo Knowledge!</p>
+                
+                <div class="game-info">
+                    <h3>🎮 How to Play</h3>
+                    <div class="info-item">
+                        <span class="info-icon">🎯</span>
+                        <span>Identify the official logo from 4 image options</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-icon">⏱️</span>
+                        <span>10 seconds per question</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-icon">❤️</span>
+                        <span>3 lives - don't lose them all!</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-icon">⭐</span>
+                        <span>+10 points correct | -5 points wrong</span>
+                    </div>
+                </div>
+
+                <button class="btn" onclick="game.showPlayerEntry()">START GAME</button>
+            </div>
+        </div>
+
+        <!-- Player Entry Screen -->
+        <div class="screen" id="playerEntryScreen">
+            <div class="player-entry">
+                <div class="entry-card">
+                    <h2>Enter Player Name</h2>
+                    <form id="playerForm" onsubmit="game.startGame(event)" autocomplete="off">
+                        <div class="input-group">
+                            <label for="playerName">Player Name</label>
+                            <input 
+                                type="text" 
+                                id="playerName" 
+                                placeholder="Enter your name..."
+                                maxlength="20"
+                                autocomplete="off"
+                                required
+                            >
+                            <div class="error-msg" id="nameError">Name must be at least 2 characters</div>
+                        </div>
+                        <button type="submit" class="btn">LET'S GO! 🚀</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div class="screen" id="gameScreen">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar"></div>
+            </div>
+
+            <div class="game-hud">
+                <div class="hud-item">
+                    <span style="font-size: 1.2rem; font-weight: 600;">SCORE:</span>
+                    <span class="score" id="score">0</span>
+                </div>
+
+                <div class="timer-container">
+                    <svg class="timer-circle" width="80" height="80">
+                        <circle class="timer-bg" cx="40" cy="40" r="32"></circle>
+                        <circle class="timer-progress" id="timerCircle" cx="40" cy="40" r="32" 
+                                stroke-dasharray="201" stroke-dashoffset="0"></circle>
+                    </svg>
+                    <div class="timer-text" id="timerText">10</div>
+                </div>
+
+                <div class="hud-item">
+                    <span style="font-size: 1.2rem; font-weight: 600;">LIVES:</span>
+                    <div class="lives" id="lives">
+                        <span class="life">❤️</span>
+                        <span class="life">❤️</span>
+                        <span class="life">❤️</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="question-section">
+                <div class="question-counter" id="questionCounter">Question 1 of 6</div>
+                <h2 class="question-text" id="questionText">Loading...</h2>
+            </div>
+
+            <div class="options-grid" id="optionsGrid">
+                <!-- Options will be inserted here -->
+            </div>
+        </div>
+
+        <!-- Victory Screen -->
+        <div class="screen" id="victoryScreen">
+            <div class="end-screen">
+                <div class="end-card">
+                    <h1 class="end-title victory">VICTORY! 🏆</h1>
+                    <p style="font-size: 1.3rem; margin-bottom: 30px; color: var(--accent);">
+                        Congratulations, <span id="winnerName"></span>!
+                    </p>
+                    <div class="stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="finalScore">0</div>
+                            <div class="stat-label">Final Score</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="correctAnswers">0</div>
+                            <div class="stat-label">Correct</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="accuracy">100%</div>
+                            <div class="stat-label">Accuracy</div>
+                        </div>
+                    </div>
+                    <button class="btn" onclick="game.restart()">PLAY AGAIN</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div class="screen" id="gameOverScreen">
+            <div class="end-screen">
+                <div class="end-card">
+                    <h1 class="end-title defeat">GAME OVER</h1>
+                    <p style="font-size: 1.3rem; margin-bottom: 30px; color: var(--error);">
+                        Better luck next time, <span id="loserName"></span>!
+                    </p>
+                    <div class="stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="gameOverScore">0</div>
+                            <div class="stat-label">Final Score</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="questionsAnswered">0</div>
+                            <div class="stat-label">Questions Answered</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="gameOverCorrect">0</div>
+                            <div class="stat-label">Correct</div>
+                        </div>
+                    </div>
+                    <div class="end-actions">
+                        <button class="btn" onclick="game.tryAgain()">TRY AGAIN</button>
+                        <button class="btn btn-home" onclick="game.goHome()">HOME</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <audio id="bgMusic" loop preload="auto">
+        <source src="Background.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="correctSfx" preload="auto">
+        <source src="correct.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="wrongSfx" preload="auto">
+        <source src="wrong.wav" type="audio/wav">
+    </audio>
+    <audio id="gameOverSfx" preload="auto">
+        <source src="gameover.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="timeoutSfx" preload="auto">
+        <source src="timeout.wav" type="audio/wav">
+    </audio>
+    <audio id="victorySfx" preload="auto">
+        <source src="victory.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // Questions Database
+        const logoQuestionSeeds = [
+            {
+                product: "Zoho (Main)",
+                correct: "images/zoho.png",
+                decoys: ["images/zoho1.png", "images/zoho2.png", "images/zoho3.png"]
+            },
+            {
+                product: "Zoho Campaigns",
+                correct: "images/zoho-campaigns.png",
+                decoys: ["images/campaigns1.png", "images/campaigns2.png", "images/campaigns3.png"]
+            },
+            {
+                product: "Zoho Cliq",
+                correct: "images/zoho-cliq.png",
+                decoys: ["images/cliq1.png", "images/cliq2.png", "images/cliq3.png"]
+            },
+            {
+                product: "Zoho Connect",
+                correct: "images/zoho-connect.png",
+                decoys: ["images/connect1.png", "images/connect2.png", "images/connect3.png"]
+            },
+            {
+                product: "Zoho Analytics",
+                correct: "images/zoho-analytics.png",
+                decoys: ["images/analytics1.png", "images/analytics2.png", "images/analytics3.png"]
+            },
+            {
+                product: "Zoho Assist",
+                correct: "images/zoho-assist.png",
+                decoys: ["images/assists1.png", "images/assists2.jpg", "images/assists3.png"]
+            },
+            {
+                product: "Zoho Backstage",
+                correct: "images/zoho-backstage.png",
+                decoys: ["images/backstage1.png", "images/backstage2.png", "images/backstage3.png"]
+            },
+            {
+                product: "Zoho Bookings",
+                correct: "images/zoho-bookings.png",
+                decoys: ["images/bookings1.png", "images/bookings2.png", "images/bookings3.png"]
+            },
+            {
+                product: "Zoho Books",
+                correct: "images/zoho-books.png",
+                decoys: ["images/books1.png", "images/books2.png", "images/books3.png"]
+            },
+            {
+                product: "Zoho Creator",
+                correct: "images/zoho-creator.png",
+                decoys: ["images/creator1.png", "images/creator2.png", "images/creator3.png"]
+            },
+            {
+                product: "Zoho CRM",
+                correct: "images/zoho-crm.png",
+                decoys: ["images/crm1.png", "images/crm2.png", "images/crm3.png"]
+            },
+            {
+                product: "Zoho Dataprep",
+                correct: "images/zoho-dataprep.png",
+                decoys: ["images/dataprep1.png", "images/dataprep2.png", "images/dataprep3.png"]
+            },
+            {
+                product: "Zoho Flow",
+                correct: "images/zoho-flow.png",
+                decoys: ["images/flow1.png", "images/flow2.png", "images/flow3.png"]
+            },
+            {
+                product: "Zoho Forms",
+                correct: "images/zoho-forms.png",
+                decoys: ["images/forms1.png", "images/forms2.png", "images/forms3.png"]
+            },
+            {
+                product: "Zoho Inventory",
+                correct: "images/zoho-inventory.png",
+                decoys: ["images/inventory1.png", "images/inventory2.png", "images/inventory3.png"]
+            },
+            {
+                product: "Zoho Invoice",
+                correct: "images/zoho-invoice.png",
+                decoys: ["images/invoice1.png", "images/invoice2.png", "images/invoice3.png"]
+            },
+            {
+                product: "Zoho PageSense",
+                correct: "images/zoho-pagesense.png",
+                decoys: ["images/pagesense1.png", "images/pagesense2.png", "images/pagesense3.png"]
+            },
+            {
+                product: "Zoho Payroll",
+                correct: "images/zoho-payroll.png",
+                decoys: ["images/payroll1.png", "images/payroll2.png", "images/payroll3.png"]
+            },
+            {
+                product: "Zoho People",
+                correct: "images/zoho-people.png",
+                decoys: ["images/people1.png", "images/people2.png", "images/people3.png"]
+            },
+            {
+                product: "Zoho Projects",
+                correct: "images/zoho-projects.png",
+                decoys: ["images/projects1.png", "images/projects2.png", "images/projects3.png"]
+            },
+            {
+                product: "Zoho Recruit",
+                correct: "images/zoho-recruite.png",
+                decoys: ["images/recruite1.png", "images/recruite2.png", "images/recruite3.png"]
+            },
+            {
+                product: "Zoho RouteIQ",
+                correct: "images/zoho-routeiq.png",
+                decoys: ["images/routeiq1.png", "images/routeiq2.png", "images/routeiq3.png"]
+            },
+            {
+                product: "Zoho SalesIQ",
+                correct: "images/zoho-salesiq.png",
+                decoys: ["images/salesiq1.png", "images/salesiq2.png", "images/salesiq3.png"]
+            },
+            {
+                product: "Zoho Sign",
+                correct: "images/zoho-sign.png",
+                decoys: ["images/sign1.png", "images/sign2.png", "images/sign3.png"]
+            },
+            {
+                product: "Zoho Social",
+                correct: "images/zoho-social.png",
+                decoys: ["images/social1.png", "images/social2.png", "images/social3.png"]
+            },
+            {
+                product: "Zoho Subscriptions",
+                correct: "images/zoho-subscription.png",
+                decoys: ["images/subscription1.png", "images/subscription2.png", "images/subscription3.png"]
+            },
+            {
+                product: "Zoho Survey",
+                correct: "images/zoho-survey.png",
+                decoys: ["images/survey1.png", "images/survey2.png", "images/survey3.png"]
+            },
+            {
+                product: "Zoho Vault",
+                correct: "images/zoho-vault.png",
+                decoys: ["images/vault1.png", "images/vault2.png", "images/vault3.png"]
+            },
+            {
+                product: "Zoho Writer",
+                correct: "images/zoho-writer.png",
+                decoys: ["images/writer1.png", "images/writer2.png", "images/writer3.png"]
+            },
+            {
+                product: "Zoho POS",
+                correct: "images/zoho-POS.png",
+                decoys: ["images/POS1.png", "images/POS2.png", "images/POS3.png"]
+            },
+             {
+                product: "Zoho Sprints",
+                correct: "images/zoho-sprints.png",
+                decoys: ["images/sprints1.png", "images/sprints2.png", "images/sprints3.png"]
+            },
+             {
+                product: "Zoho Expense",
+                correct: "images/zoho-expense.png",
+                decoys: ["images/expense1.png", "images/expense2.png", "images/expense3.png"]
+            },
+             {
+                product: "Zoho Meeting",
+                correct: "images/zoho-meeting.png",
+                decoys: ["images/meetings1.png", "images/meetings2.png", "images/meetings3.png"]
+            },
+             {
+                product: "Zoho CRM Analytics",
+                correct: "images/zoho-crmanalytics.png",
+                decoys: ["images/crmanalytics1.png", "images/crmanalytics2.png", "images/crmanalytics3.png"]
+            },
+             {
+                product: "Zoho WorkDrive",
+                correct: "images/zoho-workdrive.png",
+                decoys: ["images/workdrive1.png", "images/workdrive2.png", "images/workdrive3.png"]
+            },
+            {
+                product: "Zoho Commerce",
+                correct: "images/zoho-commerce.png",
+                decoys: ["images/commerce1.png", "images/commerce2.png", "images/commerce3.png"]
+            },
+             {
+                product: "Zoho Mail",
+                correct: "images/zoho-mail.png",
+                decoys: ["images/mail1.png", "images/mail2.png", "images/mail3.png"]
+            },
+             {
+                product: "Zoho Notebook",
+                correct: "images/zoho-notebook.png",
+                decoys: ["images/notebook1.png", "images/notebook2.png", "images/notebook3.png"]
+            },
+             {
+                product: "Zoho Webinar",
+                correct: "images/zoho-webinar.png",
+                decoys: ["images/webinar1.png", "images/webinar2.png", "images/webinar3.png"]
+            },
+             {
+                product: "Zoho Show",
+                correct: "images/zoho-show.png",
+                decoys: ["images/show1.png", "images/show2.png", "images/show3.png"]
+            },
+             {
+                product: "Zoho Calendar",
+                correct: "images/zoho-calendar.png",
+                decoys: ["images/calendar1.png", "images/calendar2.png", "images/calendar3.png"]
+            },
+             {
+                product: "Zoho Contracts",
+                correct: "images/zoho-contracts.png",
+                decoys: ["images/contracts1.png", "images/contracts2.png", "images/contracts3.png"]
+            },
+             {
+                product: "Zoho Sites",
+                correct: "images/zoho-sites.png",
+                decoys: ["images/site1.png", "images/site2.png", "images/site3.png"]
+            },
+             {
+                product: "Zoho FSM",
+                correct: "images/zoho-FSM.png",
+                decoys: ["images/FSM1.png", "images/FSM2.png", "images/FSM3.png"]
+            },
+            {
+                product: "Zoho Catalyst",
+                correct: "images/zoho-catalyst.png",
+                decoys: ["images/catalyst1.png", "images/catalyst2.png", "images/catalyst3.png"]
+            },
+            {
+                product: "Zoho OneAuth",
+                correct: "images/zoho-oneauth.png",
+                decoys: ["images/oneauth1.png", "images/oneauth2.png", "images/oneauth3.png"]
+            },
+            {
+                product: "Zoho Shifts",
+                correct: "images/zoho-shifts.png",
+                decoys: ["images/shifts1.png", "images/shifts2.png", "images/shifts3.png"]
+            },
+            {
+                product: "Zoho Workplace",
+                correct: "images/zoho-workplace.png",
+                decoys: ["images/workplace1.png", "images/workplace2.png", "images/workplace3.png"]
+            },
+           {
+                product: "Zoho Lens",
+                correct: "images/zoho-lens.png",
+                decoys: ["images/lens1.png", "images/lens2.png", "images/lens3.png"]
+           },
+           {
+                product: "Zoho ToDo",
+                correct: "images/zoho-todo.png",
+                decoys: ["images/todo1.png", "images/todo2.png", "images/todo3.png"]
+           }
+
+        ];
+
+        const questions = logoQuestionSeeds.map((item) => ({
+            question: `Select the official logo for ${item.product}`,
+            correct: item.correct,
+            options: [
+                { src: item.correct, alt: `${item.product} official logo` },
+                ...item.decoys.map((src, index) => ({
+                    src,
+                    alt: `${item.product} sample option ${index + 1}`
+                }))
+            ]
+        }));
+        const APP_VERSION = '2026.02.21.2';
+        const DEFAULT_API_BASE = 'https://zogo.onrender.com';
+        const API_BASE = (() => {
+            let savedApiBase = '';
+            try {
+                savedApiBase = localStorage.getItem('zogoApiBase') || '';
+            } catch (error) {
+                savedApiBase = '';
+            }
+            const explicit = (window.ZOGO_API_BASE || savedApiBase || '').trim();
+            if (explicit) return explicit.replace(/\/+$/, '');
+            if (window.location.hostname.endsWith('github.io')) {
+                return DEFAULT_API_BASE;
+            }
+            return '';
+        })();
+        const apiUrl = (path) => (API_BASE ? `${API_BASE}${path}` : path);
+        const QUESTION_TIME_SECONDS = 10;
+        const ENABLE_CANVAS_BG_REMOVAL = false;
+        const SOUND_CONFIG = Object.freeze({
+            backgroundVolume: 0.14,
+            effects: {
+                correct: { id: 'correctSfx', volume: 0.64, fallbackDurationMs: 1881 },
+                wrong: { id: 'wrongSfx', volume: 0.66, fallbackDurationMs: 1667 },
+                timeout: { id: 'timeoutSfx', volume: 0.68, fallbackDurationMs: 1950 },
+                gameOver: { id: 'gameOverSfx', volume: 0.64, fallbackDurationMs: 2664 },
+                victory: { id: 'victorySfx', volume: 0.62, fallbackDurationMs: 5094 }
+            },
+            transition: {
+                minDelayMs: 1200,
+                defaultDelayMs: 1500,
+                maxDelayMs: 2350,
+                soundPaddingMs: 140
+            }
+        });
+
+        // Game State Management
+        const game = {
+            state: {
+                playerName: '',
+                playerId: '',
+                currentQuestion: 0,
+                score: 0,
+                lives: 3,
+                correctCount: 0,
+                wrongCount: 0,
+                timeoutCount: 0,
+                totalAnswered: 0,
+                timer: null,
+                timeLeft: QUESTION_TIME_SECONDS,
+                isAnswering: false,
+                musicEnabled: true,
+                isSavingResult: false,
+                resultSaved: false,
+                audioUnlocked: false,
+                highScorePopupTimer: null,
+                processedImageCache: {},
+                questions: [],
+                preloadedQuestions: [],
+                preGamePreloadPromise: null,
+                lastRenderToken: '',
+                attemptId: '',
+                gameStartedAtMs: 0,
+                pendingTransitionTimer: null,
+                backgroundResumeTimer: null
+            },
+            audio: {
+                bg: null,
+                effects: {},
+                effectDurationsMs: {},
+                activeEffectPlayers: {}
+            },
+            leaderboardSync: {
+                queue: [],
+                isProcessing: false
+            },
+
+            init() {
+                this.applyAssetVersioning();
+                this.createParticles();
+                this.loadState();
+                this.setupAudio();
+                this.resetPlayerEntryForm();
+                this.preparePreGameQuestions(true);
+            },
+
+            createParticles() {
+                const particlesContainer = document.getElementById('particles');
+                particlesContainer.innerHTML = '';
+
+                for (let i = 0; i < 220; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+
+                    const tierRoll = Math.random();
+                    let size = 2;
+                    if (tierRoll < 0.55) {
+                        size = 1.9 + Math.random() * 0.9; // small stars
+                    } else if (tierRoll < 0.88) {
+                        size = 3.0 + Math.random() * 1.1; // medium stars
+                    } else {
+                        size = 4.2 + Math.random() * 1.2; // slightly larger stars
+                    }
+
+                    const sizePx = size.toFixed(2);
+                    const glowBlur = (size * 2.4).toFixed(2);
+                    const glowAlpha = (0.55 + Math.min(size / 10, 0.2)).toFixed(2);
+                    const starOpacity = (0.45 + Math.min(size / 10, 0.25)).toFixed(2);
+
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.top = Math.random() * 100 + '%';
+                    particle.style.width = `${sizePx}px`;
+                    particle.style.height = `${sizePx}px`;
+                    particle.style.opacity = starOpacity;
+                    particle.style.boxShadow = `0 0 ${glowBlur}px rgba(8, 221, 236, ${glowAlpha})`;
+                    particle.style.animationDelay = (Math.random() * 4).toFixed(2) + 's';
+                    particle.style.animationDuration = (1.5 + Math.random() * 2.6).toFixed(2) + 's';
+                    particlesContainer.appendChild(particle);
+                }
+            },
+
+            setupAudio() {
+                const audioToggle = document.getElementById('audioToggle');
+                this.audio.bg = document.getElementById('bgMusic');
+                this.audio.effects = Object.entries(SOUND_CONFIG.effects).reduce((acc, [key, config]) => {
+                    acc[key] = document.getElementById(config.id);
+                    return acc;
+                }, {});
+
+                if (this.audio.bg) {
+                    this.audio.bg.volume = SOUND_CONFIG.backgroundVolume;
+                }
+
+                Object.entries(this.audio.effects).forEach(([key, effect]) => {
+                    if (!effect) return;
+                    effect.volume = SOUND_CONFIG.effects[key].volume;
+                    this.cacheEffectDuration(key, effect);
+                    effect.addEventListener('loadedmetadata', () => this.cacheEffectDuration(key, effect));
+                });
+
+                audioToggle.textContent = this.state.musicEnabled ? '🔊' : '🔇';
+                this.registerAudioUnlockListeners();
+
+                audioToggle.addEventListener('click', () => {
+                    this.state.musicEnabled = !this.state.musicEnabled;
+                    audioToggle.textContent = this.state.musicEnabled ? '🔊' : '🔇';
+                    
+                    if (this.state.musicEnabled) {
+                        this.ensureBackgroundMusic();
+                    } else {
+                        this.clearBackgroundResume();
+                        if (this.audio.bg) {
+                            this.audio.bg.pause();
+                        }
+                        this.stopAllEffects();
+                    }
+                    
+                    this.saveState();
+                });
+
+                if (this.state.musicEnabled) {
+                    this.ensureBackgroundMusic();
+                } else if (this.audio.bg) {
+                    this.audio.bg.pause();
+                }
+            },
+
+            registerAudioUnlockListeners() {
+                const unlockOnFirstGesture = () => {
+                    this.unlockAudio().catch(() => {});
+                };
+                const listenerOptions = { capture: true, once: true };
+                document.addEventListener('pointerdown', unlockOnFirstGesture, listenerOptions);
+                document.addEventListener('touchstart', unlockOnFirstGesture, listenerOptions);
+                document.addEventListener('keydown', unlockOnFirstGesture, listenerOptions);
+            },
+
+            async unlockAudio() {
+                if (this.state.audioUnlocked) return;
+
+                const tracks = [
+                    this.audio.bg,
+                    ...Object.values(this.audio.effects)
+                ].filter(Boolean);
+
+                if (tracks.length === 0) return;
+
+                const unlockTrack = async (track) => {
+                    const previousMuted = track.muted;
+                    const previousVolume = track.volume;
+                    try {
+                        track.muted = true;
+                        track.volume = 0;
+                        const playAttempt = track.play();
+                        if (playAttempt && typeof playAttempt.then === 'function') {
+                            await playAttempt.catch(() => {});
+                        }
+                    } catch (error) {
+                        // Ignore unlock errors and retry on next explicit play.
+                    } finally {
+                        track.pause();
+                        try {
+                            track.currentTime = 0;
+                        } catch (error) {
+                            // Ignore currentTime reset errors on partially loaded media.
+                        }
+                        track.volume = previousVolume;
+                        track.muted = previousMuted;
+                    }
+                };
+
+                await Promise.all(tracks.map((track) => unlockTrack(track)));
+                this.state.audioUnlocked = true;
+            },
+
+            cacheEffectDuration(key, effect) {
+                const effectDuration = effect ? effect.duration : NaN;
+                const durationMs = Math.round(Number(effectDuration) * 1000);
+                if (Number.isFinite(durationMs) && durationMs > 0) {
+                    this.audio.effectDurationsMs[key] = durationMs;
+                }
+            },
+
+            ensureBackgroundMusic() {
+                if (!this.state.musicEnabled || !this.audio.bg) return;
+                this.audio.bg.play().catch(() => {});
+            },
+
+            restartBackgroundMusic() {
+                if (!this.state.musicEnabled || !this.audio.bg) return;
+                try {
+                    this.audio.bg.currentTime = 0;
+                } catch (error) {
+                    // Ignore seek errors for streams that are not fully ready.
+                }
+                this.audio.bg.play().catch(() => {});
+            },
+
+            clearBackgroundResume() {
+                if (!this.state.backgroundResumeTimer) return;
+                clearTimeout(this.state.backgroundResumeTimer);
+                this.state.backgroundResumeTimer = null;
+            },
+
+            playEndEffectThenRestartBackground(effectKey) {
+                this.clearBackgroundResume();
+
+                if (!this.state.musicEnabled) {
+                    return;
+                }
+
+                if (this.audio.bg) {
+                    this.audio.bg.pause();
+                }
+
+                this.stopAllEffects();
+                this.playEffect(effectKey);
+
+                const restartDelay = Math.max(
+                    1000,
+                    this.getEffectDurationMs(effectKey) + SOUND_CONFIG.transition.soundPaddingMs
+                );
+
+                this.state.backgroundResumeTimer = setTimeout(() => {
+                    this.state.backgroundResumeTimer = null;
+                    this.restartBackgroundMusic();
+                }, restartDelay);
+            },
+
+            stopEffect(key) {
+                const fallbackPlayer = this.audio.activeEffectPlayers[key];
+                if (fallbackPlayer) {
+                    fallbackPlayer.pause();
+                    this.audio.activeEffectPlayers[key] = null;
+                }
+
+                const effect = this.audio.effects[key];
+                if (!effect) return;
+                effect.pause();
+                try {
+                    effect.currentTime = 0;
+                } catch (error) {
+                    // Ignore currentTime reset errors for partially loaded media.
+                }
+            },
+
+            stopAllEffects(exceptKey = null) {
+                Object.keys(this.audio.effects).forEach((key) => {
+                    if (key === exceptKey) return;
+                    this.stopEffect(key);
+                });
+            },
+
+            playEffectFallback(key) {
+                if (!this.state.musicEnabled) return;
+                const baseEffect = this.audio.effects[key];
+                if (!baseEffect) return;
+
+                const source = baseEffect.currentSrc ||
+                    ((baseEffect.querySelector('source') && baseEffect.querySelector('source').getAttribute('src')) || '') ||
+                    baseEffect.src;
+
+                if (!source) return;
+
+                const fallbackPlayer = new Audio(source);
+                fallbackPlayer.preload = 'auto';
+                fallbackPlayer.volume = baseEffect.volume;
+                this.audio.activeEffectPlayers[key] = fallbackPlayer;
+
+                const cleanup = () => {
+                    if (this.audio.activeEffectPlayers[key] === fallbackPlayer) {
+                        this.audio.activeEffectPlayers[key] = null;
+                    }
+                };
+
+                fallbackPlayer.addEventListener('ended', cleanup, { once: true });
+                fallbackPlayer.addEventListener('error', cleanup, { once: true });
+                fallbackPlayer.play().catch(cleanup);
+            },
+
+            playEffect(key) {
+                if (!this.state.musicEnabled) return;
+                const effect = this.audio.effects[key];
+                if (!effect) return;
+
+                if (!this.state.audioUnlocked) {
+                    this.unlockAudio().catch(() => {});
+                }
+                if (effect.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) {
+                    effect.load();
+                }
+
+                this.stopAllEffects(key);
+                this.stopEffect(key);
+                const playAttempt = effect.play();
+
+                if (playAttempt && typeof playAttempt.catch === 'function') {
+                    playAttempt.catch(() => {
+                        // Fallback for browsers that reject immediate replay on a reused element.
+                        this.playEffectFallback(key);
+                    });
+                }
+            },
+
+            getEffectDurationMs(key) {
+                const cachedDuration = this.audio.effectDurationsMs[key];
+                if (Number.isFinite(cachedDuration) && cachedDuration > 0) {
+                    return cachedDuration;
+                }
+
+                const effect = this.audio.effects[key];
+                const effectDuration = effect ? effect.duration : NaN;
+                const fallbackDuration = Math.round(Number(effectDuration) * 1000);
+                if (Number.isFinite(fallbackDuration) && fallbackDuration > 0) {
+                    return fallbackDuration;
+                }
+
+                const configuredFallback = SOUND_CONFIG.effects[key]
+                    ? SOUND_CONFIG.effects[key].fallbackDurationMs
+                    : undefined;
+                if (Number.isFinite(configuredFallback) && configuredFallback > 0) {
+                    return configuredFallback;
+                }
+
+                return 0;
+            },
+
+            getTransitionDelayMs(effectKey) {
+                const { minDelayMs, defaultDelayMs, maxDelayMs, soundPaddingMs } = SOUND_CONFIG.transition;
+                if (!this.state.musicEnabled || !effectKey) {
+                    return defaultDelayMs;
+                }
+
+                const durationMs = this.getEffectDurationMs(effectKey);
+                if (!durationMs) {
+                    return defaultDelayMs;
+                }
+
+                return Math.min(maxDelayMs, Math.max(minDelayMs, durationMs + soundPaddingMs));
+            },
+
+            clearPendingTransition() {
+                if (!this.state.pendingTransitionTimer) return;
+                clearTimeout(this.state.pendingTransitionTimer);
+                this.state.pendingTransitionTimer = null;
+            },
+
+            scheduleTransition(callback, delayMs) {
+                this.clearPendingTransition();
+                this.state.pendingTransitionTimer = setTimeout(() => {
+                    this.state.pendingTransitionTimer = null;
+                    callback();
+                }, delayMs);
+            },
+
+            showScreen(screenId) {
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById(screenId).classList.add('active');
+            },
+
+            showPlayerEntry() {
+                this.unlockAudio().catch(() => {});
+                this.ensureBackgroundMusic();
+                this.showScreen('playerEntryScreen');
+                this.resetPlayerEntryForm();
+                this.preparePreGameQuestions();
+                document.getElementById('playerName').focus();
+            },
+
+            getOrCreatePlayerId() {
+                const storageKey = 'zohoPlayerId';
+                let playerId = '';
+
+                try {
+                    playerId = (localStorage.getItem(storageKey) || '').trim().toLowerCase();
+                    if (!playerId) {
+                        playerId = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
+                            ? crypto.randomUUID().toLowerCase()
+                            : `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
+                        localStorage.setItem(storageKey, playerId);
+                    }
+                } catch (error) {
+                    playerId = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
+                }
+
+                const normalizedPlayerId = playerId.replace(/[^a-z0-9-]/gi, '').toLowerCase();
+                return normalizedPlayerId || `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+            },
+
+            createAttemptId() {
+                const generated = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
+                    ? crypto.randomUUID().toLowerCase()
+                    : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
+                return generated.replace(/[^a-z0-9-]/gi, '').toLowerCase();
+            },
+
+            createLeaderboardSessionId() {
+                return `session-${this.createAttemptId()}`;
+            },
+
+            resolveAssetUrl(path) {
+                const separator = path.includes('?') ? '&' : '?';
+                return `${path}${separator}v=${encodeURIComponent(APP_VERSION)}`;
+            },
+
+            applyAssetVersioning() {
+                document.querySelectorAll('audio source').forEach((sourceElement) => {
+                    const rawSrc = sourceElement.getAttribute('src');
+                    if (!rawSrc) return;
+                    if (/[?&]v=/.test(rawSrc)) return;
+                    sourceElement.setAttribute('src', this.resolveAssetUrl(rawSrc));
+                });
+
+                document.querySelectorAll('audio').forEach((audioElement) => {
+                    try {
+                        audioElement.load();
+                    } catch (error) {
+                        // Ignore reload errors for browsers that block early media access.
+                    }
+                });
+            },
+
+            stopTimer() {
+                if (this.state.timer !== null) {
+                    cancelAnimationFrame(this.state.timer);
+                    this.state.timer = null;
+                }
+            },
+
+            resetPlayerEntryForm() {
+                const form = document.getElementById('playerForm');
+                const nameInput = document.getElementById('playerName');
+                const nameError = document.getElementById('nameError');
+
+                if (form) form.reset();
+                if (nameInput) nameInput.value = '';
+                if (nameInput) nameInput.classList.remove('error');
+                if (nameError) nameError.classList.remove('show');
+            },
+
+            async startGame(event) {
+                event.preventDefault();
+                const nameInput = document.getElementById('playerName');
+                const name = nameInput.value.trim();
+                const nameError = document.getElementById('nameError');
+                const form = event && event.target ? event.target : document.getElementById('playerForm');
+                const submitButton = form ? form.querySelector('button[type="submit"]') : null;
+                const originalSubmitText = submitButton ? submitButton.textContent : '';
+
+                let isValid = true;
+                if (name.length < 2) {
+                    nameError.classList.add('show');
+                    nameInput.classList.add('error');
+                    isValid = false;
+                } else {
+                    nameError.classList.remove('show');
+                    nameInput.classList.remove('error');
+                }
+
+                if (!isValid) return;
+
+                this.unlockAudio().catch(() => {});
+
+                if (submitButton) {
+                    submitButton.disabled = true;
+                    submitButton.textContent = 'LOADING...';
+                }
+
+                try {
+                    const preGameReadyPromise = this.state.preGamePreloadPromise;
+
+                    this.state.playerName = name;
+                    this.state.playerId = this.createLeaderboardSessionId();
+                    this.state.currentQuestion = 0;
+                    this.state.score = 0;
+                    this.state.lives = 3;
+                    this.state.correctCount = 0;
+                    this.state.wrongCount = 0;
+                    this.state.timeoutCount = 0;
+                    this.state.totalAnswered = 0;
+                    this.state.attemptId = this.createAttemptId();
+                    this.state.gameStartedAtMs = Date.now();
+                    this.state.isSavingResult = false;
+                    this.state.resultSaved = false;
+                    this.state.questions = (
+                        Array.isArray(this.state.preloadedQuestions) && this.state.preloadedQuestions.length > 0
+                            ? this.state.preloadedQuestions
+                            : this.shuffleArray([...questions])
+                    );
+                    this.state.preloadedQuestions = [];
+                    this.state.preGamePreloadPromise = null;
+                    this.hideHighScorePopup();
+                    this.clearPendingTransition();
+                    this.clearBackgroundResume();
+                    this.stopAllEffects();
+                    this.queueLeaderboardSnapshot('in_progress');
+
+                    if (preGameReadyPromise && typeof preGameReadyPromise.then === 'function') {
+                        await Promise.race([
+                            preGameReadyPromise,
+                            new Promise((resolve) => setTimeout(resolve, 3500))
+                        ]).catch(() => {});
+                    }
+
+                    this.preparePreGameQuestions();
+                    this.saveState();
+                    this.ensureBackgroundMusic();
+                    this.showScreen('gameScreen');
+                    this.prefetchUpcomingQuestionAssets(0, 3);
+                    this.loadQuestion();
+                } finally {
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.textContent = originalSubmitText || "LET'S GO! 🚀";
+                    }
+                }
+            },
+
+            shuffleArray(array) {
+                const shuffled = [...array];
+                for (let i = shuffled.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+                }
+                return shuffled;
+            },
+
+            preparePreGameQuestions(force = false) {
+                if (
+                    !force &&
+                    Array.isArray(this.state.preloadedQuestions) &&
+                    this.state.preloadedQuestions.length > 0
+                ) {
+                    return;
+                }
+
+                const preloadedDeck = this.shuffleArray([...questions]);
+                this.state.preloadedQuestions = preloadedDeck;
+                const preloadTasks = [];
+
+                if (preloadedDeck.length > 0) {
+                    preloadTasks.push(this.prefetchQuestionAssets(preloadedDeck[0], true));
+                }
+                if (preloadedDeck.length > 1) {
+                    preloadTasks.push(this.prefetchQuestionAssets(preloadedDeck[1], false));
+                }
+
+                this.state.preGamePreloadPromise = preloadTasks.length > 0
+                    ? Promise.all(preloadTasks).catch(() => {})
+                    : Promise.resolve();
+            },
+
+            preloadImage(src) {
+                const cached = this.state.processedImageCache[src];
+                if (cached) {
+                    return cached instanceof Promise ? cached : Promise.resolve(cached);
+                }
+
+                const preloadPromise = new Promise((resolve) => {
+                    const image = new Image();
+                    let settled = false;
+
+                    const finish = () => {
+                        if (settled) return;
+                        settled = true;
+                        resolve(src);
+                    };
+
+                    image.onload = finish;
+                    image.onerror = finish;
+                    image.decoding = 'async';
+                    image.src = src;
+
+                    // decode() can resolve earlier on some browsers and smooth first paint.
+                    if (typeof image.decode === 'function') {
+                        image.decode().then(finish).catch(() => {});
+                    }
+                }).then((loadedSrc) => {
+                    this.state.processedImageCache[src] = loadedSrc;
+                    return loadedSrc;
+                });
+
+                this.state.processedImageCache[src] = preloadPromise;
+                return preloadPromise;
+            },
+
+            prefetchQuestionAssets(question, warmProcessedCache = false) {
+                if (!question || !Array.isArray(question.options)) return Promise.resolve();
+
+                const tasks = question.options.map((option) => {
+                    const resolvedSrc = this.resolveAssetUrl(option.src);
+                    const preloadTask = warmProcessedCache
+                        ? this.getBackgroundRemovedImage(resolvedSrc)
+                        : this.preloadImage(resolvedSrc);
+                    return preloadTask.catch(() => null);
+                });
+
+                return Promise.all(tasks);
+            },
+
+            prefetchUpcomingQuestionAssets(startIndex, count = 2) {
+                if (!Array.isArray(this.state.questions) || this.state.questions.length === 0) return;
+                const safeStart = Math.max(0, startIndex);
+                const safeEnd = Math.min(this.state.questions.length, safeStart + Math.max(0, count));
+
+                for (let index = safeStart; index < safeEnd; index += 1) {
+                    this.prefetchQuestionAssets(this.state.questions[index]);
+                }
+            },
+
+            getBackgroundRemovedImage(src) {
+                if (!ENABLE_CANVAS_BG_REMOVAL) {
+                    return this.preloadImage(src);
+                }
+
+                const cached = this.state.processedImageCache[src];
+                if (cached) {
+                    return cached instanceof Promise ? cached : Promise.resolve(cached);
+                }
+
+                const processPromise = this.preloadImage(src).then((loadedSrc) => new Promise((resolve) => {
+                    const image = new Image();
+                    image.onload = () => {
+                        try {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = image.naturalWidth || image.width;
+                            canvas.height = image.naturalHeight || image.height;
+
+                            const context = canvas.getContext('2d');
+                            context.drawImage(image, 0, 0);
+
+                            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                            const pixels = imageData.data;
+
+                            for (let i = 0; i < pixels.length; i += 4) {
+                                const r = pixels[i];
+                                const g = pixels[i + 1];
+                                const b = pixels[i + 2];
+                                const a = pixels[i + 3];
+
+                                if (a === 0) continue;
+
+                                const max = Math.max(r, g, b);
+                                const min = Math.min(r, g, b);
+                                const nearWhite = r > 210 && g > 210 && b > 210;
+                                const lowSaturation = (max - min) < 28;
+
+                                if (nearWhite && lowSaturation) {
+                                    pixels[i + 3] = 0;
+                                }
+                            }
+
+                            context.putImageData(imageData, 0, 0);
+                            resolve(canvas.toDataURL('image/png'));
+                        } catch (error) {
+                            resolve(loadedSrc);
+                        }
+                    };
+
+                    image.onerror = () => resolve(loadedSrc);
+                    image.src = loadedSrc;
+                })).then((processedSrc) => {
+                    this.state.processedImageCache[src] = processedSrc;
+                    return processedSrc;
+                });
+
+                this.state.processedImageCache[src] = processPromise;
+                return processPromise;
+            },
+
+            loadQuestion() {
+                if (this.state.currentQuestion >= this.state.questions.length) {
+                    this.showVictory();
+                    return;
+                }
+
+                const questionIndex = this.state.currentQuestion;
+                const question = this.state.questions[this.state.currentQuestion];
+                
+                // Update UI
+                document.getElementById('questionCounter').textContent = 
+                    `Question ${this.state.currentQuestion + 1} of ${this.state.questions.length}`;
+                document.getElementById('questionText').textContent = question.question;
+                document.getElementById('score').textContent = this.state.score;
+                
+                // Update progress bar
+                const progress = ((this.state.currentQuestion) / this.state.questions.length) * 100;
+                document.getElementById('progressBar').style.width = progress + '%';
+
+                // Update lives
+                const livesContainer = document.getElementById('lives');
+                livesContainer.innerHTML = '';
+                for (let i = 0; i < 3; i++) {
+                    const life = document.createElement('span');
+                    life.className = 'life' + (i >= this.state.lives ? ' lost' : '');
+                    life.textContent = '❤️';
+                    livesContainer.appendChild(life);
+                }
+
+                // Render options
+                this.renderOptions(question);
+                if (this.state.currentQuestion !== questionIndex) return;
+                if (!document.getElementById('gameScreen').classList.contains('active')) return;
+
+                // Start timer
+                this.state.isAnswering = false;
+                this.startTimer();
+                this.prefetchUpcomingQuestionAssets(this.state.currentQuestion + 1, 2);
+            },
+
+            renderOptions(question) {
+                const grid = document.getElementById('optionsGrid');
+                const shuffledOptions = this.shuffleArray(question.options);
+                const renderToken = `${this.state.currentQuestion}-${Date.now()}`;
+                this.state.lastRenderToken = renderToken;
+
+                grid.innerHTML = '';
+                shuffledOptions.forEach((option) => {
+                    const card = document.createElement('div');
+                    card.className = 'option-card';
+                    card.dataset.src = option.src;
+                    card.tabIndex = 0;
+                    card.setAttribute('role', 'button');
+                    card.setAttribute('aria-label', option.alt);
+
+                    const media = document.createElement('div');
+                    media.className = 'option-media';
+
+                    const logoImage = document.createElement('img');
+                    logoImage.className = 'option-logo';
+                    logoImage.alt = option.alt;
+                    logoImage.loading = 'eager';
+                    logoImage.decoding = 'async';
+                    logoImage.fetchPriority = 'high';
+
+                    const resolvedSrc = this.resolveAssetUrl(option.src);
+                    this.getBackgroundRemovedImage(resolvedSrc).then((processedSrc) => {
+                        if (this.state.lastRenderToken !== renderToken) return;
+                        logoImage.src = processedSrc;
+                    }).catch(() => {
+                        if (this.state.lastRenderToken !== renderToken) return;
+                        logoImage.src = resolvedSrc;
+                    });
+
+                    const fallback = document.createElement('div');
+                    fallback.className = 'option-logo-fallback';
+                    fallback.textContent = 'IMAGE';
+                    fallback.style.display = 'none';
+
+                    logoImage.onerror = () => {
+                        logoImage.style.display = 'none';
+                        fallback.style.display = 'flex';
+                    };
+
+                    card.addEventListener('click', () => this.selectAnswer(option.src));
+                    card.addEventListener('keydown', (event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            this.selectAnswer(option.src);
+                        }
+                    });
+
+                    media.appendChild(logoImage);
+                    media.appendChild(fallback);
+                    card.appendChild(media);
+                    grid.appendChild(card);
+                });
+            },
+
+            startTimer() {
+                this.state.timeLeft = QUESTION_TIME_SECONDS;
+                const timerCircle = document.getElementById('timerCircle');
+                const timerText = document.getElementById('timerText');
+                const circumference = 201;
+                const totalDurationMs = QUESTION_TIME_SECONDS * 1000;
+                const startTime = performance.now();
+
+                this.stopTimer();
+
+                timerCircle.classList.remove('warning');
+                timerText.textContent = QUESTION_TIME_SECONDS;
+                timerCircle.style.strokeDashoffset = '0';
+
+                const tick = (now) => {
+                    if (this.state.isAnswering) {
+                        this.state.timer = null;
+                        return;
+                    }
+
+                    const elapsedMs = Math.max(0, now - startTime);
+                    const remainingMs = Math.max(0, totalDurationMs - elapsedMs);
+                    const nextSeconds = Math.ceil(remainingMs / 1000);
+
+                    if (nextSeconds !== this.state.timeLeft) {
+                        this.state.timeLeft = nextSeconds;
+                        timerText.textContent = String(nextSeconds);
+                    }
+
+                    const progress = elapsedMs / totalDurationMs;
+                    timerCircle.style.strokeDashoffset = String(circumference * progress);
+
+                    if (remainingMs <= 3000) {
+                        timerCircle.classList.add('warning');
+                    }
+
+                    if (remainingMs <= 0) {
+                        this.state.timer = null;
+                        if (!this.state.isAnswering) {
+                            this.timeout();
+                        }
+                        return;
+                    }
+
+                    this.state.timer = requestAnimationFrame(tick);
+                };
+
+                this.state.timer = requestAnimationFrame(tick);
+            },
+
+            selectAnswer(answer) {
+                if (this.state.isAnswering) return;
+                
+                this.state.isAnswering = true;
+                this.stopTimer();
+
+                const question = this.state.questions[this.state.currentQuestion];
+                const isCorrect = answer === question.correct;
+                const effectKey = isCorrect ? 'correct' : 'wrong';
+                const transitionDelay = this.getTransitionDelayMs(effectKey);
+                const cards = document.querySelectorAll('.option-card');
+
+                // Visual feedback
+                cards.forEach(card => {
+                    const cardSrc = card.dataset.src;
+                    if (cardSrc === answer) {
+                        card.classList.add(isCorrect ? 'correct' : 'wrong');
+                    }
+                    if (cardSrc === question.correct && !isCorrect) {
+                        card.classList.add('correct');
+                    }
+                    card.classList.add('disabled');
+                });
+
+                // Show feedback
+                this.playEffect(effectKey);
+                this.showFeedback(isCorrect, null, Math.max(1000, transitionDelay - 260));
+
+                // Update score and stats
+                this.state.totalAnswered++;
+                if (isCorrect) {
+                    this.state.score += 10;
+                    this.state.correctCount++;
+                    this.animateScore();
+                } else {
+                    this.state.wrongCount++;
+                    this.state.lives--;
+                    this.state.score = Math.max(0, this.state.score - 5);
+                    
+                    this.queueLeaderboardSnapshot('in_progress');
+
+                    if (this.state.lives === 0) {
+                        this.scheduleTransition(() => this.showGameOver(), transitionDelay);
+                        return;
+                    }
+                }
+
+                if (isCorrect) {
+                    this.queueLeaderboardSnapshot('in_progress');
+                }
+                this.saveState();
+
+                // Next question
+                this.scheduleTransition(() => {
+                    this.state.currentQuestion++;
+                    this.loadQuestion();
+                }, transitionDelay);
+            },
+
+            timeout() {
+                this.state.isAnswering = true;
+                this.stopTimer();
+                this.state.totalAnswered++;
+                this.state.timeoutCount++;
+                this.state.lives--;
+                this.state.score = Math.max(0, this.state.score - 5);
+                const effectKey = 'timeout';
+                const transitionDelay = this.getTransitionDelayMs(effectKey);
+
+                const question = this.state.questions[this.state.currentQuestion];
+                const cards = document.querySelectorAll('.option-card');
+
+                cards.forEach(card => {
+                    if (card.dataset.src === question.correct) {
+                        card.classList.add('correct');
+                    }
+                    card.classList.add('disabled');
+                });
+
+                this.playEffect(effectKey);
+                this.showFeedback(false, 'TIME OUT!', Math.max(1000, transitionDelay - 260));
+                this.queueLeaderboardSnapshot('in_progress');
+
+                if (this.state.lives === 0) {
+                    this.scheduleTransition(() => this.showGameOver(), transitionDelay);
+                    return;
+                }
+
+                this.saveState();
+
+                this.scheduleTransition(() => {
+                    this.state.currentQuestion++;
+                    this.loadQuestion();
+                }, transitionDelay);
+            },
+
+            showFeedback(isCorrect, customText = null, displayMs = 1000) {
+                const feedback = document.getElementById('feedback');
+                const isTimeout = typeof customText === 'string' && customText.toUpperCase().includes('TIME OUT');
+                const feedbackType = isTimeout ? 'timeout' : (isCorrect ? 'correct' : 'wrong');
+                feedback.textContent = customText || (isCorrect ? 'CORRECT! ✓' : 'WRONG! ✗');
+                feedback.className = 'feedback show ' + feedbackType;
+                
+                setTimeout(() => {
+                    feedback.classList.remove('show');
+                }, displayMs);
+            },
+
+            animateScore() {
+                const scoreElement = document.getElementById('score');
+                scoreElement.classList.add('pulse');
+                setTimeout(() => scoreElement.classList.remove('pulse'), 500);
+            },
+
+            hideHighScorePopup() {
+                const popup = document.getElementById('highScorePopup');
+                if (!popup) return;
+                popup.classList.remove('show');
+
+                if (this.state.highScorePopupTimer) {
+                    clearTimeout(this.state.highScorePopupTimer);
+                    this.state.highScorePopupTimer = null;
+                }
+            },
+
+            showHighScorePopup() {
+                const popup = document.getElementById('highScorePopup');
+                if (!popup) return;
+
+                popup.classList.add('show');
+
+                if (this.state.highScorePopupTimer) {
+                    clearTimeout(this.state.highScorePopupTimer);
+                }
+
+                this.state.highScorePopupTimer = setTimeout(() => {
+                    popup.classList.remove('show');
+                    this.state.highScorePopupTimer = null;
+                }, 5200);
+            },
+
+            buildResultPayload(outcome, options = {}) {
+                const totalAnswered = this.state.totalAnswered;
+                const accuracy = Math.round((this.state.correctCount / totalAnswered) * 100) || 0;
+                const durationMs = this.state.gameStartedAtMs
+                    ? Math.max(0, Date.now() - this.state.gameStartedAtMs)
+                    : 0;
+                const submissionAttemptId = (
+                    options &&
+                    typeof options.attemptId === 'string' &&
+                    options.attemptId.trim()
+                )
+                    ? options.attemptId.trim()
+                    : this.createAttemptId();
+                return {
+                    playerName: this.state.playerName,
+                    playerId: this.state.playerId,
+                    attemptId: submissionAttemptId,
+                    score: this.state.score,
+                    correctCount: this.state.correctCount,
+                    wrongCount: this.state.wrongCount,
+                    timeoutCount: this.state.timeoutCount,
+                    totalAnswered,
+                    accuracy,
+                    durationMs,
+                    outcome,
+                    updateMode: 'replace',
+                    gameVersion: APP_VERSION
+                };
+            },
+
+            enqueueLeaderboardSnapshot(outcome) {
+                if (!this.state.playerId) {
+                    this.state.playerId = this.createLeaderboardSessionId();
+                }
+                if (this.state.playerName.trim().length < 2) {
+                    return Promise.resolve(false);
+                }
+
+                const payload = this.buildResultPayload(outcome, {
+                    attemptId: this.createAttemptId()
+                });
+
+                return this.enqueueLeaderboardPayload(payload);
+            },
+
+            enqueueLeaderboardPayload(payload) {
+                return new Promise((resolve) => {
+                    this.leaderboardSync.queue.push({ payload, resolve });
+                    this.flushLeaderboardSnapshotQueue();
+                });
+            },
+
+            async flushLeaderboardSnapshotQueue() {
+                if (this.leaderboardSync.isProcessing) return;
+
+                this.leaderboardSync.isProcessing = true;
+                try {
+                    while (this.leaderboardSync.queue.length > 0) {
+                        const item = this.leaderboardSync.queue[0];
+                        const saved = await this.saveResult(item.payload);
+                        this.leaderboardSync.queue.shift();
+                        if (typeof item.resolve === 'function') {
+                            item.resolve(saved);
+                        }
+                    }
+                } finally {
+                    this.leaderboardSync.isProcessing = false;
+                }
+            },
+
+            async fetchCurrentTopScore() {
+                try {
+                    const response = await this.fetchWithTimeout(apiUrl('/api/results?limit=1&sort=leaderboard'), {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json'
+                        },
+                        cache: 'no-store'
+                    }, 5000);
+
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch top score (${response.status})`);
+                    }
+
+                    const data = await response.json();
+                    const topScore = Number(
+                        data &&
+                        Array.isArray(data.results) &&
+                        data.results[0]
+                            ? data.results[0].score
+                            : undefined
+                    );
+                    if (!Number.isFinite(topScore)) return 0;
+                    return Math.max(0, Math.floor(topScore));
+                } catch (error) {
+                    console.warn('Could not fetch current top score.', error);
+                    return null;
+                }
+            },
+
+            async fetchWithTimeout(url, options = {}, timeoutMs = 8000) {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+                try {
+                    return await fetch(url, {
+                        ...options,
+                        signal: controller.signal
+                    });
+                } finally {
+                    clearTimeout(timeout);
+                }
+            },
+
+            async saveResult(payload) {
+                this.state.isSavingResult = true;
+
+                try {
+                    const maxAttempts = 4;
+                    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+                        try {
+                            const response = await this.fetchWithTimeout(apiUrl('/api/results'), {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-Game-Version': APP_VERSION
+                                },
+                                body: JSON.stringify(payload)
+                            });
+
+                            if (!response.ok) {
+                                throw new Error(`Failed to save result (${response.status})`);
+                            }
+
+                            return true;
+                        } catch (error) {
+                            if (attempt === maxAttempts) {
+                                throw error;
+                            }
+                            await new Promise((resolve) => setTimeout(resolve, attempt * 250));
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Could not save game result to the database.', error);
+                    return false;
+                } finally {
+                    this.state.isSavingResult = false;
+                }
+            },
+
+            async persistResultAndMaybeShowHighScore(outcome) {
+                if (!this.state.playerId) {
+                    this.state.playerId = this.createLeaderboardSessionId();
+                }
+                const finalPayload = this.buildResultPayload(outcome, {
+                    attemptId: this.createAttemptId()
+                });
+                const finalPayloadScore = finalPayload.score;
+                const previousTopScore = await this.fetchCurrentTopScore();
+                const saved = await this.enqueueLeaderboardPayload(finalPayload);
+
+                if (!saved) return;
+                if (typeof previousTopScore !== 'number') return;
+                if (finalPayloadScore <= previousTopScore) return;
+
+                this.showHighScorePopup();
+            },
+
+            showVictory() {
+                this.stopTimer();
+                this.clearPendingTransition();
+                this.playEndEffectThenRestartBackground('victory');
+                this.persistResultAndMaybeShowHighScore('victory');
+                document.getElementById('winnerName').textContent = this.state.playerName;
+                document.getElementById('finalScore').textContent = this.state.score;
+                document.getElementById('correctAnswers').textContent = this.state.correctCount;
+                const accuracy = Math.round((this.state.correctCount / this.state.totalAnswered) * 100) || 0;
+                document.getElementById('accuracy').textContent = accuracy + '%';
+                
+                this.showScreen('victoryScreen');
+                this.clearState();
+            },
+
+            showGameOver() {
+                this.stopTimer();
+                this.clearPendingTransition();
+                this.playEndEffectThenRestartBackground('gameOver');
+                this.persistResultAndMaybeShowHighScore('game_over');
+                document.getElementById('loserName').textContent = this.state.playerName;
+                document.getElementById('gameOverScore').textContent = this.state.score;
+                document.getElementById('questionsAnswered').textContent = this.state.totalAnswered;
+                document.getElementById('gameOverCorrect').textContent = this.state.correctCount;
+                
+                this.showScreen('gameOverScreen');
+                this.clearState();
+            },
+
+            tryAgain() {
+                this.stopTimer();
+
+                this.hideHighScorePopup();
+                this.clearPendingTransition();
+                this.clearBackgroundResume();
+                this.stopAllEffects();
+
+                if (this.state.playerName.trim().length < 2) {
+                    this.showPlayerEntry();
+                    return;
+                }
+
+                this.state.playerId = this.createLeaderboardSessionId();
+
+                this.state.currentQuestion = 0;
+                this.state.score = 0;
+                this.state.lives = 3;
+                this.state.correctCount = 0;
+                this.state.wrongCount = 0;
+                this.state.timeoutCount = 0;
+                this.state.totalAnswered = 0;
+                this.state.timeLeft = QUESTION_TIME_SECONDS;
+                this.state.isAnswering = false;
+                this.state.isSavingResult = false;
+                this.state.resultSaved = false;
+                this.state.attemptId = this.createAttemptId();
+                this.state.gameStartedAtMs = Date.now();
+                this.state.questions = this.shuffleArray([...questions]);
+                this.queueLeaderboardSnapshot('in_progress');
+
+                this.saveState();
+                this.ensureBackgroundMusic();
+                this.showScreen('gameScreen');
+                this.prefetchUpcomingQuestionAssets(0, 3);
+                this.loadQuestion();
+            },
+
+            goHome() {
+                this.stopTimer();
+
+                this.hideHighScorePopup();
+                this.clearPendingTransition();
+                this.clearBackgroundResume();
+                this.stopAllEffects();
+                this.showScreen('landingScreen');
+                this.state.playerName = '';
+                this.state.playerId = '';
+                this.state.currentQuestion = 0;
+                this.state.score = 0;
+                this.state.lives = 3;
+                this.state.correctCount = 0;
+                this.state.wrongCount = 0;
+                this.state.timeoutCount = 0;
+                this.state.totalAnswered = 0;
+                this.state.timeLeft = QUESTION_TIME_SECONDS;
+                this.state.isAnswering = false;
+                this.state.isSavingResult = false;
+                this.state.resultSaved = false;
+                this.state.questions = [];
+                this.state.attemptId = '';
+                this.state.gameStartedAtMs = 0;
+
+                this.clearState();
+                this.resetPlayerEntryForm();
+            },
+
+            restart() {
+                this.goHome();
+            },
+
+            saveState() {
+                try {
+                    localStorage.setItem('zohoGameState', JSON.stringify({
+                        schemaVersion: 2,
+                        playerName: this.state.playerName,
+                        playerId: this.state.playerId,
+                        currentQuestion: this.state.currentQuestion,
+                        score: this.state.score,
+                        lives: this.state.lives,
+                        correctCount: this.state.correctCount,
+                        wrongCount: this.state.wrongCount,
+                        timeoutCount: this.state.timeoutCount,
+                        totalAnswered: this.state.totalAnswered,
+                        attemptId: this.state.attemptId,
+                        gameStartedAtMs: this.state.gameStartedAtMs,
+                        questions: this.state.questions,
+                        musicEnabled: this.state.musicEnabled
+                    }));
+                } catch (e) {
+                    console.log('Could not save state');
+                }
+            },
+
+            isValidSavedQuestions(savedQuestions) {
+                return Array.isArray(savedQuestions) && savedQuestions.length > 0 &&
+                    savedQuestions.every((q) =>
+                        q &&
+                        typeof q.question === 'string' &&
+                        typeof q.correct === 'string' &&
+                        Array.isArray(q.options) &&
+                        q.options.length >= 2 &&
+                        q.options.every((option) => option && typeof option.src === 'string')
+                    );
+            },
+
+            loadState() {
+                try {
+                    const saved = localStorage.getItem('zohoGameState');
+                    if (saved) {
+                        const state = JSON.parse(saved);
+
+                        const hasValidQuestions = this.isValidSavedQuestions(state.questions);
+                        const hasValidProgress =
+                            typeof state.currentQuestion === 'number' &&
+                            typeof state.lives === 'number' &&
+                            state.currentQuestion > 0 &&
+                            state.lives > 0 &&
+                            state.currentQuestion < ((state.questions && state.questions.length) || 0);
+
+                        if (hasValidQuestions && hasValidProgress) {
+                            Object.assign(this.state, state);
+                            if (!this.state.playerId) {
+                                this.state.playerId = this.createLeaderboardSessionId();
+                            }
+                            if (typeof this.state.wrongCount !== 'number') {
+                                this.state.wrongCount = 0;
+                            }
+                            if (typeof this.state.timeoutCount !== 'number') {
+                                this.state.timeoutCount = 0;
+                            }
+                            if (typeof this.state.musicEnabled !== 'boolean') {
+                                this.state.musicEnabled = true;
+                            }
+                            if (!this.state.attemptId) {
+                                this.state.attemptId = this.createAttemptId();
+                            }
+                            if (!this.state.gameStartedAtMs) {
+                                this.state.gameStartedAtMs = Date.now();
+                            }
+                            
+                            // Resume game
+                            this.showScreen('gameScreen');
+                            this.prefetchUpcomingQuestionAssets(this.state.currentQuestion, 3);
+                            this.loadQuestion();
+                            this.queueLeaderboardSnapshot('in_progress');
+                            
+                            // Update audio toggle
+                            document.getElementById('audioToggle').textContent = 
+                                this.state.musicEnabled ? '🔊' : '🔇';
+                        } else {
+                            this.clearState();
+                        }
+                    }
+                } catch (e) {
+                    console.log('Could not load state');
+                    this.clearState();
+                }
+            },
+
+            clearState() {
+                try {
+                    localStorage.removeItem('zohoGameState');
+                } catch (e) {
+                    console.log('Could not clear state');
+                }
+            }
+        };
+
+        // Initialize game when page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            game.init();
+        });
+
+        // Real-time validation for player details
+        document.addEventListener('DOMContentLoaded', () => {
+            const nameInput = document.getElementById('playerName');
+            const nameError = document.getElementById('nameError');
+
+            if (nameInput) {
+                nameInput.addEventListener('input', () => {
+                    if (nameInput.value.trim().length >= 2) {
+                        nameError.classList.remove('show');
+                        nameInput.classList.remove('error');
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
