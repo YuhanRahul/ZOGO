@@ -1849,7 +1849,7 @@
                     this.clearPendingTransition();
                     this.clearBackgroundResume();
                     this.stopAllEffects();
-                    this.queueLeaderboardSnapshot('in_progress');
+                    this.enqueueLeaderboardSnapshot('in_progress');
 
                     if (preGameReadyPromise && typeof preGameReadyPromise.then === 'function') {
                         await Promise.race([
@@ -2212,7 +2212,7 @@
                     this.state.lives--;
                     this.state.score = Math.max(0, this.state.score - 5);
                     
-                    this.queueLeaderboardSnapshot('in_progress');
+                    this.enqueueLeaderboardSnapshot('in_progress');
 
                     if (this.state.lives === 0) {
                         this.scheduleTransition(() => this.showGameOver(), transitionDelay);
@@ -2221,7 +2221,7 @@
                 }
 
                 if (isCorrect) {
-                    this.queueLeaderboardSnapshot('in_progress');
+                    this.enqueueLeaderboardSnapshot('in_progress');
                 }
                 this.saveState();
 
@@ -2254,7 +2254,7 @@
 
                 this.playEffect(effectKey);
                 this.showFeedback(false, 'TIME OUT!', Math.max(1000, transitionDelay - 260));
-                this.queueLeaderboardSnapshot('in_progress');
+                this.enqueueLeaderboardSnapshot('in_progress');
 
                 if (this.state.lives === 0) {
                     this.scheduleTransition(() => this.showGameOver(), transitionDelay);
@@ -2540,7 +2540,7 @@
                 this.state.attemptId = this.createAttemptId();
                 this.state.gameStartedAtMs = Date.now();
                 this.state.questions = this.shuffleArray([...questions]);
-                this.queueLeaderboardSnapshot('in_progress');
+                this.enqueueLeaderboardSnapshot('in_progress');
 
                 this.saveState();
                 this.ensureBackgroundMusic();
@@ -2656,7 +2656,7 @@
                             this.showScreen('gameScreen');
                             this.prefetchUpcomingQuestionAssets(this.state.currentQuestion, 3);
                             this.loadQuestion();
-                            this.queueLeaderboardSnapshot('in_progress');
+                            this.enqueueLeaderboardSnapshot('in_progress');
                             
                             // Update audio toggle
                             document.getElementById('audioToggle').textContent = 
