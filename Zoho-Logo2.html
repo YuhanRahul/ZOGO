@@ -576,7 +576,7 @@
 
         .options-grid.loading .option-card {
             pointer-events: none;
-            opacity: 0.65;
+            opacity: 0.85;
         }
 
         .question-loading {
@@ -606,6 +606,27 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-media.is-loading::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                110deg,
+                rgba(255, 255, 255, 0) 15%,
+                rgba(255, 255, 255, 0.78) 45%,
+                rgba(255, 255, 255, 0) 75%
+            );
+            transform: translateX(-120%);
+            animation: logoSkeletonSweep 1s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes logoSkeletonSweep {
+            to { transform: translateX(120%); }
         }
 
         @keyframes correctPulse {
@@ -627,6 +648,14 @@
             object-fit: contain;
             margin-bottom: 0;
             filter: brightness(1.04) saturate(1.12);
+            opacity: 0;
+            transform: scale(0.985);
+            transition: opacity 140ms ease, transform 140ms ease;
+        }
+
+        .option-logo.is-visible {
+            opacity: 1;
+            transform: scale(1);
         }
 
         .option-logo-fallback {
@@ -1637,11 +1666,6 @@
         const QUESTION_TIME_SECONDS = 10;
         const ENABLE_CANVAS_BG_REMOVAL = false;
         const HIGH_SCORE_CACHE_TTL_MS = 30000;
-        const IMAGE_PRELOAD_CONFIG = Object.freeze({
-            initialQuestions: 4,
-            aheadQuestions: 3,
-            interQuestionDelayMs: 70
-        });
         const SOUND_CONFIG = Object.freeze({
             backgroundVolume: 0.14,
             effects: {
@@ -1704,12 +1728,10 @@
                 effectDurationsMs: {},
                 activeEffectPlayers: {}
             },
-            assetPreload: {
-                preparedDeck: null,
-                queue: [],
-                queuedQuestionKeys: new Set(),
-                isDraining: false
+            preloadedRun: {
+                questions: null
             },
+
 
             init() {
                 this.applyAssetVersioning();
@@ -1717,7 +1739,7 @@
                 this.setupAudio();
                 this.loadState();
                 if (!document.getElementById('gameScreen').classList.contains('active')) {
-                    this.warmInitialQuestionsForNextRun();
+                    this.warmEntryQuestionAssets();
                 }
                 this.resetPlayerEntryForm();
                 this.renderHighScoreDisplay({ loading: true });
@@ -2037,7 +2059,7 @@
             showPlayerEntry() {
                 this.unlockAudio().catch(() => {});
                 this.ensureBackgroundMusic();
-                this.warmInitialQuestionsForNextRun();
+                this.warmEntryQuestionAssets();
                 this.showScreen('playerEntryScreen');
                 this.resetPlayerEntryForm();
                 document.getElementById('playerName').focus();
@@ -2133,21 +2155,15 @@
                 this.state.topScoreBeforeRun = null;
                 this.state.attemptId = this.createAttemptId();
                 this.state.gameStartedAtMs = Date.now();
-                this.state.questions = this.consumePreparedQuestionDeck();
+                this.state.questions = this.consumePreparedRunQuestions();
                 this.hideHighScorePopup();
                 this.showSaveStatus('');
                 this.clearPendingTransition();
                 this.clearBackgroundResume();
                 this.stopAllEffects();
-                this.queueQuestionPreloadRange(
-                    this.state.questions,
-                    0,
-                    IMAGE_PRELOAD_CONFIG.initialQuestions,
-                    { priority: true }
-                );
 
                 this.captureTopScoreBeforeRun();
-                void this.saveResult(this.buildResultPayload('in_progress'), { force: true });
+                this.prefetchUpcomingQuestionAssets(0, 3);
 
                 this.saveState();
                 this.ensureBackgroundMusic();
@@ -2164,126 +2180,36 @@
                 return shuffled;
             },
 
-            getQuestionPreloadKey(question) {
-                if (!question) return '';
-                return String(question.correct || question.question || '').trim();
-            },
-
-            prepareQuestionDeckForNextRun(force = false) {
+            prepareRunQuestions(force = false) {
                 if (
                     !force &&
-                    Array.isArray(this.assetPreload.preparedDeck) &&
-                    this.assetPreload.preparedDeck.length > 0
+                    Array.isArray(this.preloadedRun.questions) &&
+                    this.preloadedRun.questions.length > 0
                 ) {
-                    return this.assetPreload.preparedDeck;
+                    return this.preloadedRun.questions;
                 }
 
-                const deck = this.shuffleArray([...questions]);
-                this.assetPreload.preparedDeck = deck;
-                return deck;
+                const preparedQuestions = this.shuffleArray([...questions]);
+                this.preloadedRun.questions = preparedQuestions;
+                return preparedQuestions;
             },
 
-            consumePreparedQuestionDeck() {
-                const deck = (
-                    Array.isArray(this.assetPreload.preparedDeck) &&
-                    this.assetPreload.preparedDeck.length > 0
+            consumePreparedRunQuestions() {
+                const preparedQuestions = (
+                    Array.isArray(this.preloadedRun.questions) &&
+                    this.preloadedRun.questions.length > 0
                 )
-                    ? this.assetPreload.preparedDeck
+                    ? this.preloadedRun.questions
                     : this.shuffleArray([...questions]);
 
-                this.assetPreload.preparedDeck = null;
-                return deck;
+                this.preloadedRun.questions = null;
+                return preparedQuestions;
             },
 
-            warmInitialQuestionsForNextRun(force = false) {
-                const deck = this.prepareQuestionDeckForNextRun(force);
-                this.queueQuestionPreloadRange(
-                    deck,
-                    0,
-                    IMAGE_PRELOAD_CONFIG.initialQuestions,
-                    { priority: true }
-                );
-                return deck;
-            },
-
-            preloadUpcomingQuestions(startIndex, count = IMAGE_PRELOAD_CONFIG.aheadQuestions) {
-                this.queueQuestionPreloadRange(this.state.questions, startIndex, count);
-            },
-
-            queueQuestionPreloadRange(questionDeck, startIndex, count, { priority = false } = {}) {
-                if (!Array.isArray(questionDeck) || questionDeck.length === 0) return;
-
-                const safeStart = Math.max(0, Number(startIndex) || 0);
-                const safeCount = Math.max(0, Math.floor(Number(count) || 0));
-                if (safeCount === 0) return;
-
-                const tasks = [];
-                const endIndex = Math.min(questionDeck.length, safeStart + safeCount);
-
-                for (let index = safeStart; index < endIndex; index += 1) {
-                    const question = questionDeck[index];
-                    if (!question) continue;
-
-                    const key = this.getQuestionPreloadKey(question);
-                    if (key && this.assetPreload.queuedQuestionKeys.has(key)) {
-                        continue;
-                    }
-
-                    if (key) {
-                        this.assetPreload.queuedQuestionKeys.add(key);
-                    }
-                    tasks.push(question);
-                }
-
-                if (tasks.length === 0) return;
-
-                if (priority) {
-                    this.assetPreload.queue.unshift(...tasks);
-                } else {
-                    this.assetPreload.queue.push(...tasks);
-                }
-
-                this.drainQuestionPreloadQueue();
-            },
-
-            preloadQuestionAssets(question) {
-                if (!question || !Array.isArray(question.options)) {
-                    return Promise.resolve();
-                }
-
-                const tasks = question.options.map((option) => {
-                    const resolvedSrc = this.resolveAssetUrl(option.src);
-                    return this.getBackgroundRemovedImage(resolvedSrc).catch(() => null);
-                });
-
-                return Promise.allSettled(tasks);
-            },
-
-            drainQuestionPreloadQueue() {
-                if (this.assetPreload.isDraining) return;
-
-                this.assetPreload.isDraining = true;
-                const runQueue = async () => {
-                    try {
-                        while (this.assetPreload.queue.length > 0) {
-                            const nextQuestion = this.assetPreload.queue.shift();
-                            await this.preloadQuestionAssets(nextQuestion);
-
-                            if (this.assetPreload.queue.length > 0) {
-                                await new Promise((resolve) => {
-                                    setTimeout(resolve, IMAGE_PRELOAD_CONFIG.interQuestionDelayMs);
-                                });
-                            }
-                        }
-                    } finally {
-                        this.assetPreload.isDraining = false;
-                        if (this.assetPreload.queue.length > 0) {
-                            this.drainQuestionPreloadQueue();
-                        }
-                    }
-                };
-
-                void runQueue();
+            warmEntryQuestionAssets(force = false) {
+                const preparedQuestions = this.prepareRunQuestions(force);
+                this.prefetchQuestionAssetsFromDeck(preparedQuestions, 0, 3);
+                return preparedQuestions;
             },
 
             renderHighScoreDisplay({ loading = false } = {}) {
@@ -2385,6 +2311,38 @@
                 return preloadPromise;
             },
 
+            preloadQuestionAssets(question) {
+                if (!question || !Array.isArray(question.options)) return Promise.resolve();
+
+                const tasks = question.options.map((option) => {
+                    const resolvedSrc = this.resolveAssetUrl(option.src);
+                    const preloadTask = ENABLE_CANVAS_BG_REMOVAL
+                        ? this.getBackgroundRemovedImage(resolvedSrc)
+                        : this.preloadImage(resolvedSrc);
+                    return preloadTask.catch(() => null);
+                });
+
+                return Promise.allSettled(tasks);
+            },
+
+            prefetchUpcomingQuestionAssets(startIndex, count = 2) {
+                this.prefetchQuestionAssetsFromDeck(this.state.questions, startIndex, count);
+            },
+
+            prefetchQuestionAssetsFromDeck(questionDeck, startIndex, count = 2) {
+                if (!Array.isArray(questionDeck) || questionDeck.length === 0) return;
+
+                const safeStart = Math.max(0, Number(startIndex) || 0);
+                const safeEnd = Math.min(
+                    questionDeck.length,
+                    safeStart + Math.max(0, Math.floor(Number(count) || 0))
+                );
+
+                for (let index = safeStart; index < safeEnd; index += 1) {
+                    void this.preloadQuestionAssets(questionDeck[index]);
+                }
+            },
+
             getBackgroundRemovedImage(src) {
                 if (!ENABLE_CANVAS_BG_REMOVAL) {
                     return this.preloadImage(src);
@@ -2452,7 +2410,6 @@
                 }
 
                 const question = this.state.questions[this.state.currentQuestion];
-                this.preloadUpcomingQuestions(this.state.currentQuestion + 1);
                 const loadToken = ++this.state.questionLoadToken;
                 this.state.isQuestionLoading = true;
                 this.state.isAnswering = true;
@@ -2490,6 +2447,10 @@
                         card.classList.remove('disabled');
                     });
                     this.startTimer();
+                    window.setTimeout(() => {
+                        if (loadToken !== this.state.questionLoadToken) return;
+                        this.prefetchUpcomingQuestionAssets(this.state.currentQuestion + 1, 2);
+                    }, 140);
                 }).catch(() => {
                     if (loadToken !== this.state.questionLoadToken) return;
                     this.state.isQuestionLoading = false;
@@ -2499,13 +2460,16 @@
                         card.classList.remove('disabled');
                     });
                     this.startTimer();
+                    window.setTimeout(() => {
+                        if (loadToken !== this.state.questionLoadToken) return;
+                        this.prefetchUpcomingQuestionAssets(this.state.currentQuestion + 1, 2);
+                    }, 140);
                 });
             },
 
             renderOptions(question) {
                 const grid = document.getElementById('optionsGrid');
                 const shuffledOptions = this.shuffleArray(question.options);
-                const readyPromises = [];
 
                 grid.innerHTML = '';
                 shuffledOptions.forEach((option) => {
@@ -2519,6 +2483,7 @@
 
                     const media = document.createElement('div');
                     media.className = 'option-media';
+                    media.classList.add('is-loading');
 
                     const logoImage = document.createElement('img');
                     logoImage.className = 'option-logo';
@@ -2532,24 +2497,22 @@
                     fallback.textContent = 'IMAGE';
                     fallback.style.display = 'none';
 
+                    logoImage.addEventListener('load', () => {
+                        media.classList.remove('is-loading');
+                        logoImage.classList.add('is-visible');
+                    }, { once: true });
+
                     logoImage.onerror = () => {
+                        media.classList.remove('is-loading');
                         logoImage.style.display = 'none';
                         fallback.style.display = 'flex';
                     };
 
-                    readyPromises.push(new Promise((resolve) => {
-                        let settled = false;
-                        const finish = () => {
-                            if (settled) return;
-                            settled = true;
-                            resolve();
-                        };
-
-                        logoImage.addEventListener('load', finish, { once: true });
-                        logoImage.addEventListener('error', finish, { once: true });
-                        window.setTimeout(finish, 5000);
-
-                        const resolvedSrc = this.resolveAssetUrl(option.src);
+                    const resolvedSrc = this.resolveAssetUrl(option.src);
+                    if (!ENABLE_CANVAS_BG_REMOVAL) {
+                        // Set the src immediately so the UI doesn't wait on a separate preload promise.
+                        logoImage.src = resolvedSrc;
+                    } else {
                         this.getBackgroundRemovedImage(resolvedSrc)
                             .then((processedSrc) => {
                                 logoImage.src = processedSrc;
@@ -2557,7 +2520,7 @@
                             .catch(() => {
                                 logoImage.src = resolvedSrc;
                             });
-                    }));
+                    }
 
                     card.addEventListener('click', () => this.selectAnswer(option.src));
                     card.addEventListener('keydown', (event) => {
@@ -2573,7 +2536,9 @@
                     grid.appendChild(card);
                 });
 
-                return Promise.allSettled(readyPromises);
+                return new Promise((resolve) => {
+                    requestAnimationFrame(() => resolve());
+                });
             },
 
             startTimer() {
@@ -2675,14 +2640,12 @@
                     
                     if (this.state.lives === 0) {
                         this.saveState();
-                        void this.saveResult(this.buildResultPayload('in_progress'));
                         this.scheduleTransition(() => this.showGameOver(), transitionDelay);
                         return;
                     }
                 }
 
                 this.saveState();
-                void this.saveResult(this.buildResultPayload('in_progress'));
 
                 // Next question
                 this.scheduleTransition(() => {
@@ -2718,13 +2681,11 @@
 
                 if (this.state.lives === 0) {
                     this.saveState();
-                    void this.saveResult(this.buildResultPayload('in_progress'));
                     this.scheduleTransition(() => this.showGameOver(), transitionDelay);
                     return;
                 }
 
                 this.saveState();
-                void this.saveResult(this.buildResultPayload('in_progress'));
 
                 this.scheduleTransition(() => {
                     this.state.currentQuestion++;
@@ -3058,12 +3019,11 @@
                 this.state.topScoreBeforeRun = null;
                 this.state.attemptId = this.createAttemptId();
                 this.state.gameStartedAtMs = Date.now();
-                this.state.questions = this.warmInitialQuestionsForNextRun(true);
-                this.assetPreload.preparedDeck = null;
+                this.state.questions = this.consumePreparedRunQuestions();
 
                 this.showSaveStatus('');
                 this.captureTopScoreBeforeRun();
-                void this.saveResult(this.buildResultPayload('in_progress'), { force: true });
+                this.prefetchUpcomingQuestionAssets(0, 3);
 
                 this.saveState();
                 this.ensureBackgroundMusic();
@@ -3105,7 +3065,7 @@
                 this.clearState();
                 this.resetPlayerEntryForm();
                 this.renderHighScoreDisplay();
-                this.warmInitialQuestionsForNextRun(true);
+                this.warmEntryQuestionAssets(true);
             },
 
             restart() {
@@ -3201,9 +3161,9 @@
                             
                             // Resume game
                             this.showScreen('gameScreen');
+                            this.prefetchUpcomingQuestionAssets(this.state.currentQuestion, 3);
                             this.loadQuestion();
                             this.captureTopScoreBeforeRun();
-                            void this.saveResult(this.buildResultPayload('in_progress'), { force: true });
                             
                             // Update audio toggle
                             document.getElementById('audioToggle').textContent = 
