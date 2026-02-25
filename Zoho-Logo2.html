@@ -1206,7 +1206,7 @@
         <!-- Landing Screen -->
         <div class="screen active" id="landingScreen">
             <div class="landing">
-                <h1 class="logo-title"><br>ZOGO<span class="logo-title-gap">CHALLENGE</span></h1>
+                <h1 class="logo-title">ZOGO<span class="logo-title-gap">CHALLENGE</span></h1>
                 <p class="subtitle">Think you know Zoho logos? Let’s find out.</p>
                 
                 <div class="game-info">
@@ -1710,7 +1710,7 @@
                 resultSaved: false,
                 audioUnlocked: false,
                 resultFlushPromise: null,
-                pendingResultPayload: null,
+                pendingResultQueue: [],
                 lastResultSyncKey: '',
                 topScoreBeforeRun: null,
                 cachedTopScore: null,
@@ -2155,7 +2155,7 @@
                 this.state.questionLoadToken = 0;
                 this.state.resultSaved = false;
                 if (!this.state.isSavingResult) {
-                    this.state.pendingResultPayload = null;
+                    this.state.pendingResultQueue = [];
                     this.state.lastResultSyncKey = '';
                 }
                 this.state.topScoreBeforeRun = null;
@@ -2965,7 +2965,10 @@
                     return false;
                 }
 
-                this.state.pendingResultPayload = { payload, force };
+                if (!Array.isArray(this.state.pendingResultQueue)) {
+                    this.state.pendingResultQueue = [];
+                }
+                this.state.pendingResultQueue.push({ payload, force });
                 if (this.state.isSavingResult) {
                     return this.state.resultFlushPromise || true;
                 }
@@ -2973,9 +2976,11 @@
                 this.state.isSavingResult = true;
                 this.state.resultFlushPromise = (async () => {
                     try {
-                        while (this.state.pendingResultPayload) {
-                            const next = this.state.pendingResultPayload;
-                            this.state.pendingResultPayload = null;
+                        while (Array.isArray(this.state.pendingResultQueue) && this.state.pendingResultQueue.length > 0) {
+                            const next = this.state.pendingResultQueue.shift();
+                            if (!next) {
+                                continue;
+                            }
 
                             const nextPayload = next.payload;
                             const nextForce = Boolean(next.force);
@@ -3004,6 +3009,15 @@
                 return this.state.resultFlushPromise;
             },
 
+            finalizeEndedRunPersistence(persistPromise, completedAttemptId) {
+                void Promise.resolve(persistPromise)
+                    .catch(() => {})
+                    .finally(() => {
+                        if (this.state.attemptId !== completedAttemptId) return;
+                        this.clearState();
+                    });
+            },
+
             async persistResultAndMaybeShowHighScore(outcome) {
                 if (!this.state.playerId) {
                     this.state.playerId = this.createLeaderboardSessionId();
@@ -3029,7 +3043,8 @@
                 this.stopTimer();
                 this.clearPendingTransition();
                 this.playEndEffectThenRestartBackground('victory');
-                this.persistResultAndMaybeShowHighScore('victory');
+                const completedAttemptId = this.state.attemptId;
+                const persistPromise = this.persistResultAndMaybeShowHighScore('victory');
                 document.getElementById('winnerName').textContent = this.state.playerName;
                 document.getElementById('finalScore').textContent = this.state.score;
                 document.getElementById('correctAnswers').textContent = this.state.correctCount;
@@ -3037,7 +3052,7 @@
                 document.getElementById('accuracy').textContent = accuracy + '%';
                 
                 this.showScreen('victoryScreen');
-                this.clearState();
+                this.finalizeEndedRunPersistence(persistPromise, completedAttemptId);
                 this.warmEntryQuestionAssets(true);
             },
 
@@ -3045,14 +3060,15 @@
                 this.stopTimer();
                 this.clearPendingTransition();
                 this.playEndEffectThenRestartBackground('gameOver');
-                this.persistResultAndMaybeShowHighScore('game_over');
+                const completedAttemptId = this.state.attemptId;
+                const persistPromise = this.persistResultAndMaybeShowHighScore('game_over');
                 document.getElementById('loserName').textContent = this.state.playerName;
                 document.getElementById('gameOverScore').textContent = this.state.score;
                 document.getElementById('questionsAnswered').textContent = this.state.totalAnswered;
                 document.getElementById('gameOverCorrect').textContent = this.state.correctCount;
                 
                 this.showScreen('gameOverScreen');
-                this.clearState();
+                this.finalizeEndedRunPersistence(persistPromise, completedAttemptId);
                 this.warmEntryQuestionAssets(true);
             },
 
@@ -3084,7 +3100,7 @@
                 this.state.questionLoadToken = 0;
                 this.state.resultSaved = false;
                 if (!this.state.isSavingResult) {
-                    this.state.pendingResultPayload = null;
+                    this.state.pendingResultQueue = [];
                     this.state.lastResultSyncKey = '';
                 }
                 this.state.topScoreBeforeRun = null;
@@ -3126,7 +3142,7 @@
                 this.state.questionLoadToken = 0;
                 this.state.resultSaved = false;
                 if (!this.state.isSavingResult) {
-                    this.state.pendingResultPayload = null;
+                    this.state.pendingResultQueue = [];
                     this.state.lastResultSyncKey = '';
                 }
                 this.state.topScoreBeforeRun = null;
@@ -3197,7 +3213,7 @@
                         const hasValidProgress =
                             typeof state.currentQuestion === 'number' &&
                             typeof state.lives === 'number' &&
-                            state.currentQuestion > 0 &&
+                            state.currentQuestion >= 0 &&
                             state.lives > 0 &&
                             state.currentQuestion < (state.questions?.length || 0);
 

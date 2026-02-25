@@ -78,7 +78,7 @@ On Render Web Service:
   - `ALLOWED_ORIGINS` (comma-separated origins)
   - `DB_POOL_MIN_SIZE` / `DB_POOL_MAX_SIZE`
 
-## 7. GitHub Pages API base
+## 6. GitHub Pages API base
 
 When the frontend is on GitHub Pages, set the API base once in browser console:
 
@@ -88,7 +88,7 @@ localStorage.setItem('zogoApiBase', 'https://zogo.onrender.com');
 
 Or set `window.ZOGO_API_BASE` before the game scripts load.
 
-## 6. Render Blueprint (recommended)
+## 7. Render Blueprint (recommended)
 
 This repo includes `/Users/yuhan-zsbth015/ZOGO/render.yaml` so Render can provision both:
 

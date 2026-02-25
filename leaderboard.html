@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LOHO Leaderboard</title>
+    <title>ZOGO Leaderboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -480,7 +480,7 @@
         <section class="header-card">
             <h1 class="title">ZOGO<br>LEADERBOARD</h1>
             <p class="subtitle">Ranked by score (highest to lowest)</p>
-            <!-- <p class="live-status" id="liveStatus">Connecting live updates...</p> -->
+            <p class="live-status" id="liveStatus">Connecting live updates...</p>
             <div class="actions">
                 <button class="btn btn-danger" id="clearBtn" type="button" style="display:none;">Clear Records</button>
                 <button class="btn btn-secondary icon-btn" id="refreshBtn" type="button" aria-label="Refresh leaderboard" title="Refresh leaderboard">&#x21bb;</button>
@@ -529,7 +529,10 @@
         const LEADERBOARD_LIMIT = 100;
         const POLLING_INTERVAL_MS = 2000;
         const SSE_RECONNECT_DELAY_MS = 2000;
+        const IN_PROGRESS_STALE_MS = 15 * 60 * 1000;
+        const STALE_IN_PROGRESS_SWEEP_MS = 15000;
         const DEFAULT_API_BASE = 'https://zogo.onrender.com';
+        const ADMIN_TOKEN_STORAGE_KEY = 'zogoLeaderboardAdminToken';
         const ADMIN_MODE = new URLSearchParams(window.location.search).get('admin') === '1';
         const API_BASE = (() => {
             let savedApiBase = '';
@@ -551,6 +554,7 @@
             resultsById: new Map(),
             eventSource: null,
             pollingTimer: null,
+            staleSweepTimer: null,
             reconnectTimer: null,
             renderScheduled: false,
             fetchInFlight: false,
@@ -607,6 +611,36 @@
             statusElement.classList.toggle('offline', !isOnline);
         }
 
+        function getStoredAdminToken() {
+            const explicit = typeof window.ZOGO_ADMIN_TOKEN === 'string'
+                ? window.ZOGO_ADMIN_TOKEN.trim()
+                : '';
+            if (explicit) return explicit;
+
+            try {
+                const sessionToken = (sessionStorage.getItem(ADMIN_TOKEN_STORAGE_KEY) || '').trim();
+                if (sessionToken) return sessionToken;
+            } catch (error) {
+                // Ignore storage access failures.
+            }
+
+            return '';
+        }
+
+        function promptForAdminToken() {
+            const entered = window.prompt('Enter leaderboard admin token');
+            const token = typeof entered === 'string' ? entered.trim() : '';
+            if (!token) return '';
+
+            try {
+                sessionStorage.setItem(ADMIN_TOKEN_STORAGE_KEY, token);
+            } catch (error) {
+                // Ignore storage access failures.
+            }
+
+            return token;
+        }
+
         function parseNumber(value) {
             const parsed = Number.parseInt(value, 10);
             return Number.isFinite(parsed) ? parsed : 0;
@@ -651,6 +685,57 @@
 
         function getSortedResults() {
             return Array.from(leaderboardState.resultsById.values()).sort(compareResults);
+        }
+
+        function removeResultsByIds(ids) {
+            if (!Array.isArray(ids) || ids.length === 0) return 0;
+
+            let removedCount = 0;
+            ids.forEach((id) => {
+                const normalizedId = parseNumber(id);
+                if (normalizedId <= 0) return;
+                if (leaderboardState.resultsById.delete(normalizedId)) {
+                    removedCount += 1;
+                }
+            });
+
+            return removedCount;
+        }
+
+        function pruneStaleInProgressResultsFromState(nowMs = Date.now()) {
+            if (!(IN_PROGRESS_STALE_MS > 0)) return 0;
+
+            let removedCount = 0;
+            leaderboardState.resultsById.forEach((result, resultId) => {
+                if (!result || result.outcome !== 'in_progress') return;
+                if (!Number.isFinite(result.createdAtMs) || result.createdAtMs <= 0) return;
+                if ((nowMs - result.createdAtMs) < IN_PROGRESS_STALE_MS) return;
+
+                if (leaderboardState.resultsById.delete(resultId)) {
+                    removedCount += 1;
+                }
+            });
+
+            return removedCount;
+        }
+
+        function enforceLeaderboardLimit() {
+            if (leaderboardState.resultsById.size <= LEADERBOARD_LIMIT) return 0;
+
+            const sorted = Array.from(leaderboardState.resultsById.values()).sort(compareResults);
+            const keepIds = new Set(
+                sorted.slice(0, LEADERBOARD_LIMIT).map((result) => Number(result.id))
+            );
+
+            let removedCount = 0;
+            leaderboardState.resultsById.forEach((_, resultId) => {
+                if (keepIds.has(Number(resultId))) return;
+                if (leaderboardState.resultsById.delete(resultId)) {
+                    removedCount += 1;
+                }
+            });
+
+            return removedCount;
         }
 
         function scheduleRender() {
@@ -756,6 +841,58 @@
             });
         }
 
+        function getRankClass(rank) {
+            return rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : '';
+        }
+
+        function getOutcomeClass(outcome) {
+            if (outcome === 'victory') return 'outcome-victory';
+            if (outcome === 'in_progress') return 'outcome-in-progress';
+            return 'outcome-game-over';
+        }
+
+        function buildRowRenderKey(result, rank) {
+            return [
+                rank,
+                result.playerName,
+                result.score,
+                result.correctCount,
+                result.totalAnswered,
+                result.accuracy,
+                result.outcome,
+                result.createdAt
+            ].join('|');
+        }
+
+        function buildRowCellsMarkup(result, rank) {
+            const rankClass = getRankClass(rank);
+            const outcomeClass = getOutcomeClass(result.outcome);
+
+            return `
+                <td><span class="rank-badge ${rankClass}">#${rank}</span></td>
+                <td>${escapeHtml(result.playerName)}</td>
+                <td><span class="score">${result.score}</span></td>
+                <td>${result.correctCount}/${result.totalAnswered}</td>
+                <td>${result.accuracy}%</td>
+                <td><span class="outcome ${outcomeClass}">${normalizeOutcome(result.outcome)}</span></td>
+                <td>${formatDate(result.createdAt)}</td>
+            `;
+        }
+
+        function patchResultRow(row, result, index) {
+            const rank = index + 1;
+            const nextRenderKey = buildRowRenderKey(result, rank);
+            row.dataset.resultId = String(result.id);
+
+            if (row.dataset.renderKey === nextRenderKey) {
+                return row;
+            }
+
+            row.dataset.renderKey = nextRenderKey;
+            row.innerHTML = buildRowCellsMarkup(result, rank);
+            return row;
+        }
+
         function renderRows(results) {
             const tbody = document.getElementById('leaderboardBody');
             const previousPositions = captureRowPositions(tbody);
@@ -766,29 +903,23 @@
                 return;
             }
 
-            const rows = results.map((result, index) => {
-                const rank = index + 1;
-                const rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : '';
-                const outcomeClass = result.outcome === 'victory'
-                    ? 'outcome-victory'
-                    : result.outcome === 'in_progress'
-                        ? 'outcome-in-progress'
-                        : 'outcome-game-over';
-
-                return `
-                    <tr data-result-id="${result.id}">
-                        <td><span class="rank-badge ${rankClass}">#${rank}</span></td>
-                        <td>${escapeHtml(result.playerName)}</td>
-                        <td><span class="score">${result.score}</span></td>
-                        <td>${result.correctCount}/${result.totalAnswered}</td>
-                        <td>${result.accuracy}%</td>
-                        <td><span class="outcome ${outcomeClass}">${normalizeOutcome(result.outcome)}</span></td>
-                        <td>${formatDate(result.createdAt)}</td>
-                    </tr>
-                `;
+            const rowsById = new Map();
+            tbody.querySelectorAll('tr[data-result-id]').forEach((row) => {
+                if (row.dataset.resultId) {
+                    rowsById.set(row.dataset.resultId, row);
+                }
             });
 
-            tbody.innerHTML = rows.join('');
+            const fragment = document.createDocumentFragment();
+            for (let index = 0; index < results.length; index += 1) {
+                const result = results[index];
+                const resultId = String(result.id);
+                const row = rowsById.get(resultId) || document.createElement('tr');
+                patchResultRow(row, result, index);
+                fragment.appendChild(row);
+            }
+
+            tbody.replaceChildren(fragment);
             animateRowsMovingUp(tbody, previousPositions);
             updateStats(results);
         }
@@ -807,6 +938,8 @@
                 mergedCount += 1;
             }
 
+            pruneStaleInProgressResultsFromState();
+            enforceLeaderboardLimit();
             scheduleRender();
             return mergedCount;
         }
@@ -879,10 +1012,50 @@
             scheduleRender();
         }
 
+        function handleResultsRemoved(event) {
+            try {
+                const data = JSON.parse(event.data);
+                const ids = Array.isArray(data?.ids) ? data.ids : [];
+                const removedCount = removeResultsByIds(ids);
+                if (removedCount > 0) {
+                    scheduleRender();
+                    return;
+                }
+                if (ids.length > 0) {
+                    // If IDs were provided but none matched local state, do nothing.
+                    return;
+                }
+                loadLeaderboard();
+            } catch (error) {
+                loadLeaderboard();
+            }
+        }
+
         function stopPollingFallback() {
             if (!leaderboardState.pollingTimer) return;
             clearInterval(leaderboardState.pollingTimer);
             leaderboardState.pollingTimer = null;
+        }
+
+        function stopStaleInProgressSweep() {
+            if (!leaderboardState.staleSweepTimer) return;
+            clearInterval(leaderboardState.staleSweepTimer);
+            leaderboardState.staleSweepTimer = null;
+        }
+
+        function startStaleInProgressSweep() {
+            if (leaderboardState.staleSweepTimer) return;
+
+            const runSweep = () => {
+                const removedCount = pruneStaleInProgressResultsFromState();
+                const trimmedCount = enforceLeaderboardLimit();
+                if (removedCount > 0 || trimmedCount > 0) {
+                    scheduleRender();
+                }
+            };
+
+            runSweep();
+            leaderboardState.staleSweepTimer = setInterval(runSweep, STALE_IN_PROGRESS_SWEEP_MS);
         }
 
         function startPollingFallback() {
@@ -933,6 +1106,7 @@
 
             stream.addEventListener('result_created', handleLiveEventMessage);
             stream.addEventListener('result_updated', handleLiveEventMessage);
+            stream.addEventListener('results_removed', handleResultsRemoved);
             stream.addEventListener('results_cleared', handleLeaderboardCleared);
 
             stream.onerror = () => {
@@ -944,8 +1118,8 @@
                 startPollingFallback();
 
                 if (!openedBefore) {
-                    leaderboardState.disableStream = true;
-                    setLiveStatus('Live stream unavailable. Auto-refresh every 2s.', false);
+                    setLiveStatus('Live stream unavailable. Retrying... Auto-refresh active.', false);
+                    scheduleReconnect();
                     return;
                 }
 
@@ -955,8 +1129,16 @@
         }
 
         async function clearLeaderboard() {
+            if (!ADMIN_MODE) return;
+
             const shouldClear = window.confirm('Clear all leaderboard records? This cannot be undone.');
             if (!shouldClear) return;
+
+            let adminToken = getStoredAdminToken();
+            if (!adminToken) {
+                adminToken = promptForAdminToken();
+            }
+            if (!adminToken) return;
 
             const tbody = document.getElementById('leaderboardBody');
             tbody.innerHTML = '<tr><td class="status" colspan="7">Clearing records...</td></tr>';
@@ -966,11 +1148,19 @@
                     method: 'DELETE',
                     headers: {
                         'Accept': 'application/json',
-                        'X-Game-Version': APP_VERSION
+                        'X-Game-Version': APP_VERSION,
+                        'X-Admin-Token': adminToken
                     }
                 });
 
                 if (!response.ok) {
+                    if (response.status === 403) {
+                        try {
+                            sessionStorage.removeItem(ADMIN_TOKEN_STORAGE_KEY);
+                        } catch (error) {
+                            // Ignore storage access failures.
+                        }
+                    }
                     throw new Error(`Request failed: ${response.status}`);
                 }
 
@@ -987,6 +1177,7 @@
             createParticles();
             loadLeaderboard({ showLoading: true });
             connectLiveUpdates();
+            startStaleInProgressSweep();
             if (ADMIN_MODE) {
                 document.getElementById('clearBtn').style.display = 'inline-flex';
             } else {
@@ -999,6 +1190,7 @@
                 leaderboardState.eventSource.close();
             }
             stopPollingFallback();
+            stopStaleInProgressSweep();
             if (leaderboardState.reconnectTimer) {
                 clearTimeout(leaderboardState.reconnectTimer);
             }

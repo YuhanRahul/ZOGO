@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
+import hmac
 import json
 import os
 import queue
 import threading
 import time
 from contextlib import contextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Optional
@@ -23,6 +24,7 @@ except ImportError:  # pragma: no cover - optional dependency fallback
 ROOT_DIR = Path(__file__).resolve().parent
 DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 ALLOWED_ORIGINS_RAW = os.environ.get("ALLOWED_ORIGINS", "*").strip()
+LEADERBOARD_ADMIN_TOKEN = os.environ.get("LEADERBOARD_ADMIN_TOKEN", "").strip()
 
 VALID_OUTCOMES = {"victory", "game_over", "in_progress"}
 DB_CONNECT_TIMEOUT_SECONDS = 12
@@ -39,9 +41,15 @@ MAX_PAGE_SIZE = 200
 LEADERBOARD_CACHE_TTL_SECONDS = float(os.environ.get("LEADERBOARD_CACHE_TTL_SECONDS", "3"))
 SSE_QUEUE_SIZE = 128
 SSE_HEARTBEAT_SECONDS = 15
+IN_PROGRESS_RESULT_TTL_SECONDS = int(os.environ.get("IN_PROGRESS_RESULT_TTL_SECONDS", "900"))
+STALE_IN_PROGRESS_PRUNE_MIN_INTERVAL_SECONDS = float(
+    os.environ.get("STALE_IN_PROGRESS_PRUNE_MIN_INTERVAL_SECONDS", "10")
+)
 EXPECTED_QUESTION_COUNT = int(os.environ.get("EXPECTED_QUESTION_COUNT", "50"))
 SCORE_CORRECT_DELTA = int(os.environ.get("SCORE_CORRECT_DELTA", "10"))
 SCORE_INCORRECT_DELTA = int(os.environ.get("SCORE_INCORRECT_DELTA", "5"))
+SCORE_STREAK_BONUS_DELTA = int(os.environ.get("SCORE_STREAK_BONUS_DELTA", "2"))
+SCORE_STREAK_BONUS_INTERVAL = int(os.environ.get("SCORE_STREAK_BONUS_INTERVAL", "5"))
 TRANSIENT_SQLSTATES = {
     "40001",  # serialization_failure
     "40P01",  # deadlock_detected
@@ -61,6 +69,8 @@ RATE_LIMIT_LOCK = threading.Lock()
 RATE_LIMIT_BUCKETS = {}
 RESULTS_CACHE_LOCK = threading.Lock()
 RESULTS_CACHE = {}
+STALE_IN_PROGRESS_PRUNE_LOCK = threading.Lock()
+STALE_IN_PROGRESS_LAST_PRUNE_AT = 0.0
 
 
 def parse_allowed_origins(raw: str):
@@ -77,6 +87,11 @@ def init_db() -> None:
     def _initialize():
         with open_db_connection() as conn:
             with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT to_regclass('public.game_results') IS NOT NULL AS exists"
+                )
+                game_results_exists = bool(cur.fetchone()["exists"])
+
                 cur.execute(
                     """
                     CREATE TABLE IF NOT EXISTS game_results (
@@ -107,36 +122,32 @@ def init_db() -> None:
                     )
                     """
                 )
-                cur.execute(
-                    """
-                    ALTER TABLE game_results
-                    ADD COLUMN IF NOT EXISTS player_name_normalized TEXT
-                    """
-                )
-                cur.execute(
-                    """
-                    ALTER TABLE game_results
-                    ADD COLUMN IF NOT EXISTS player_id TEXT
-                    """
-                )
-                cur.execute(
-                    """
-                    ALTER TABLE game_results
-                    ADD COLUMN IF NOT EXISTS wrong_count INTEGER NOT NULL DEFAULT 0
-                    """
-                )
-                cur.execute(
-                    """
-                    ALTER TABLE game_results
-                    ADD COLUMN IF NOT EXISTS timeout_count INTEGER NOT NULL DEFAULT 0
-                    """
-                )
-                cur.execute(
-                    """
-                    ALTER TABLE game_results
-                    ADD COLUMN IF NOT EXISTS duration_ms INTEGER NOT NULL DEFAULT 0
-                    """
-                )
+                if game_results_exists:
+                    # Compatibility migrations for older deployments that predate
+                    # the current schema defined in CREATE TABLE above.
+                    for migration_sql in (
+                        """
+                        ALTER TABLE game_results
+                        ADD COLUMN IF NOT EXISTS player_name_normalized TEXT
+                        """,
+                        """
+                        ALTER TABLE game_results
+                        ADD COLUMN IF NOT EXISTS player_id TEXT
+                        """,
+                        """
+                        ALTER TABLE game_results
+                        ADD COLUMN IF NOT EXISTS wrong_count INTEGER NOT NULL DEFAULT 0
+                        """,
+                        """
+                        ALTER TABLE game_results
+                        ADD COLUMN IF NOT EXISTS timeout_count INTEGER NOT NULL DEFAULT 0
+                        """,
+                        """
+                        ALTER TABLE game_results
+                        ADD COLUMN IF NOT EXISTS duration_ms INTEGER NOT NULL DEFAULT 0
+                        """,
+                    ):
+                        cur.execute(migration_sql)
                 cur.execute(
                     """
                     UPDATE game_results
@@ -406,6 +417,44 @@ def set_cached_results(cache_key: str, payload: dict) -> None:
         RESULTS_CACHE[cache_key] = (expires_at, payload)
 
 
+def should_prune_stale_in_progress_results() -> bool:
+    if IN_PROGRESS_RESULT_TTL_SECONDS <= 0:
+        return False
+
+    min_interval = max(0.0, STALE_IN_PROGRESS_PRUNE_MIN_INTERVAL_SECONDS)
+    now = time.monotonic()
+    global STALE_IN_PROGRESS_LAST_PRUNE_AT
+    with STALE_IN_PROGRESS_PRUNE_LOCK:
+        if min_interval > 0 and (now - STALE_IN_PROGRESS_LAST_PRUNE_AT) < min_interval:
+            return False
+        STALE_IN_PROGRESS_LAST_PRUNE_AT = now
+    return True
+
+
+def prune_stale_in_progress_results() -> list[int]:
+    if IN_PROGRESS_RESULT_TTL_SECONDS <= 0:
+        return []
+
+    cutoff = datetime.now(timezone.utc) - timedelta(seconds=IN_PROGRESS_RESULT_TTL_SECONDS)
+
+    def _prune():
+        with open_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    DELETE FROM game_results
+                    WHERE outcome = 'in_progress' AND created_at < %s
+                    RETURNING id
+                    """,
+                    (cutoff,),
+                )
+                rows = cur.fetchall() or []
+            conn.commit()
+            return [int(row["id"]) for row in rows if row and row.get("id") is not None]
+
+    return with_db_retry(_prune)
+
+
 def allow_rate_limit(key: str, max_tokens: int, refill_per_second: float) -> bool:
     now = time.monotonic()
     with RATE_LIMIT_LOCK:
@@ -452,11 +501,15 @@ def validate_score_payload(
     if score < 0:
         raise ValueError("score must be >= 0")
 
-    if score > correct_count * SCORE_CORRECT_DELTA:
-        raise ValueError("score exceeds maximum for the provided counts")
+    # Frontend awards +2 every 5 consecutive correct answers.
+    # We only have aggregate counts here, so allow the maximum possible streak bonus
+    # (all correct answers grouped into one continuous streak).
+    max_streak_bonus = 0
+    if SCORE_STREAK_BONUS_INTERVAL > 0 and SCORE_STREAK_BONUS_DELTA > 0:
+        max_streak_bonus = (correct_count // SCORE_STREAK_BONUS_INTERVAL) * SCORE_STREAK_BONUS_DELTA
 
-    if score % 5 != 0:
-        raise ValueError("score must be a multiple of 5")
+    if score > (correct_count * SCORE_CORRECT_DELTA) + max_streak_bonus:
+        raise ValueError("score exceeds maximum for the provided counts")
 
     if outcome == "victory" and total_answered != EXPECTED_QUESTION_COUNT:
         raise ValueError("victory requires all questions to be answered")
@@ -464,9 +517,6 @@ def validate_score_payload(
     if duration_ms > 0:
         if duration_ms > 4 * 60 * 60 * 1000:
             raise ValueError("durationMs is too large")
-        min_expected = max(5000, total_answered * 350)
-        if total_answered > 4 and duration_ms < min_expected:
-            raise ValueError("durationMs is implausibly low")
 
 
 def serialize_created_at(value) -> str:
@@ -557,7 +607,7 @@ class QuizHandler(SimpleHTTPRequestHandler):
             if allow_origin != "*":
                 self.send_header("Vary", "Origin")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type, X-Game-Version")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, X-Game-Version, X-Admin-Token")
         super().end_headers()
 
     def do_OPTIONS(self):
@@ -779,19 +829,20 @@ class QuizHandler(SimpleHTTPRequestHandler):
                         )
                         existing = cur.fetchone()
 
-                        cur.execute(
-                            """
-                            INSERT INTO result_submissions (player_id, attempt_id, created_at)
-                            VALUES (%s, %s, %s)
-                            ON CONFLICT (player_id, attempt_id) DO NOTHING
-                            RETURNING id
-                            """,
-                            (player_id, attempt_id, created_at),
-                        )
-                        submission_inserted = cur.fetchone() is not None
-                        if not submission_inserted and existing is not None:
-                            conn.commit()
-                            return (200, "unchanged", serialize_result_row(existing), False)
+                        if update_mode != "replace":
+                            cur.execute(
+                                """
+                                INSERT INTO result_submissions (player_id, attempt_id, created_at)
+                                VALUES (%s, %s, %s)
+                                ON CONFLICT (player_id, attempt_id) DO NOTHING
+                                RETURNING id
+                                """,
+                                (player_id, attempt_id, created_at),
+                            )
+                            submission_inserted = cur.fetchone() is not None
+                            if not submission_inserted and existing is not None:
+                                conn.commit()
+                                return (200, "unchanged", serialize_result_row(existing), False)
 
                         if existing is None:
                             cur.execute(
@@ -849,6 +900,22 @@ class QuizHandler(SimpleHTTPRequestHandler):
                         is_better = score > existing_score or (
                             score == existing_score and accuracy > existing_accuracy
                         )
+
+                        if should_replace_existing:
+                            is_same_snapshot = (
+                                str(existing["playerName"]) == player_name and
+                                int(existing["score"]) == score and
+                                int(existing["correctCount"]) == correct_count and
+                                int(existing["wrongCount"]) == wrong_count and
+                                int(existing["timeoutCount"]) == timeout_count and
+                                int(existing["totalAnswered"]) == total_answered and
+                                int(existing["accuracy"]) == accuracy and
+                                int(existing["durationMs"]) == duration_ms and
+                                str(existing["outcome"]) == outcome
+                            )
+                            if is_same_snapshot:
+                                conn.commit()
+                                return (200, "unchanged", serialize_result_row(existing), False)
 
                         if should_replace_existing or is_better:
                             result_id = int(existing["id"])
@@ -918,6 +985,15 @@ class QuizHandler(SimpleHTTPRequestHandler):
             )
             if event_name in {"result_created", "result_updated"}:
                 self.broadcast_event(event_name, {"result": result})
+            if should_prune_stale_in_progress_results():
+                try:
+                    pruned_ids = prune_stale_in_progress_results()
+                    if pruned_ids:
+                        invalidate_results_cache()
+                        self.broadcast_event("results_removed", {"ids": pruned_ids})
+                except Exception:
+                    # Stale-row cleanup is best-effort and should not fail score submission.
+                    pass
         except ValueError as exc:
             self.send_json(400, {"error": str(exc)})
         except Exception as exc:
@@ -931,6 +1007,16 @@ class QuizHandler(SimpleHTTPRequestHandler):
         if self.is_rate_limited(f"get:{client_ip}", max_tokens=120, refill_per_second=2):
             self.send_json(429, {"error": "Too many leaderboard requests. Please retry shortly."})
             return
+
+        if should_prune_stale_in_progress_results():
+            try:
+                pruned_ids = prune_stale_in_progress_results()
+                if pruned_ids:
+                    invalidate_results_cache()
+                    self.broadcast_event("results_removed", {"ids": pruned_ids})
+            except Exception:
+                # Cleanup is best-effort; serve leaderboard even if prune fails.
+                pass
 
         query = parse_qs(parsed.query)
         sort_mode = query.get("sort", ["latest"])[0].strip().lower()
@@ -966,6 +1052,11 @@ class QuizHandler(SimpleHTTPRequestHandler):
             if sort_mode == "leaderboard"
             else "id DESC"
         )
+        stale_in_progress_cutoff = None
+        if IN_PROGRESS_RESULT_TTL_SECONDS > 0:
+            stale_in_progress_cutoff = (
+                datetime.now(timezone.utc) - timedelta(seconds=IN_PROGRESS_RESULT_TTL_SECONDS)
+            )
         cache_key = None
         if sort_mode == "leaderboard" and limit is not None and offset == 0:
             cache_key = f"leaderboard:v1:limit:{limit}"
@@ -981,6 +1072,13 @@ class QuizHandler(SimpleHTTPRequestHandler):
         def fetch_results():
             with open_db_connection() as conn:
                 with conn.cursor() as cur:
+                    where_clauses = []
+                    params = []
+                    if stale_in_progress_cutoff is not None:
+                        where_clauses.append("NOT (outcome = 'in_progress' AND created_at < %s)")
+                        params.append(stale_in_progress_cutoff)
+
+                    where_sql = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
                     base_query = f"""
                         SELECT
                             id,
@@ -995,12 +1093,13 @@ class QuizHandler(SimpleHTTPRequestHandler):
                             outcome,
                             created_at AS "createdAt"
                         FROM game_results
+                        {where_sql}
                         ORDER BY {order_clause}
                     """
                     if limit is None:
-                        cur.execute(base_query)
+                        cur.execute(base_query, tuple(params))
                     else:
-                        cur.execute(f"{base_query} LIMIT %s OFFSET %s", (limit, offset))
+                        cur.execute(f"{base_query} LIMIT %s OFFSET %s", tuple(params) + (limit, offset))
                     return cur.fetchall()
 
         try:
@@ -1034,6 +1133,16 @@ class QuizHandler(SimpleHTTPRequestHandler):
 
     def handle_clear_results(self):
         try:
+            configured_admin_token = LEADERBOARD_ADMIN_TOKEN
+            if not configured_admin_token:
+                self.send_json(503, {"error": "Leaderboard admin token is not configured."})
+                return
+
+            provided_admin_token = (self.headers.get("X-Admin-Token") or "").strip()
+            if not provided_admin_token or not hmac.compare_digest(provided_admin_token, configured_admin_token):
+                self.send_json(403, {"error": "Forbidden"})
+                return
+
             client_ip = self.get_client_ip()
             if self.is_rate_limited(f"delete:{client_ip}", max_tokens=2, refill_per_second=1 / 30):
                 self.send_json(429, {"error": "Too many clear requests. Please retry shortly."})

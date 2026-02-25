@@ -24,7 +24,7 @@ services:
       - key: EXPECTED_QUESTION_COUNT
         value: "50"
       - key: ALLOWED_ORIGINS
-        value: "*"
+        value: "https://yuhanrahul.github.io,https://zogo.onrender.com"
       - key: LEADERBOARD_ADMIN_TOKEN
         generateValue: true
 
