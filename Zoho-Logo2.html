@@ -1734,8 +1734,7 @@
             },
             preloadedRun: {
                 questions: null,
-                prefetchedQuestionKeys: new Set(),
-                prefetchingQuestionKeys: new Set()
+                prefetchedQuestionKeys: new Set()
             },
 
 
@@ -2198,7 +2197,6 @@
 
                 const preparedQuestions = this.shuffleArray([...questions]);
                 this.preloadedRun.prefetchedQuestionKeys = new Set();
-                this.preloadedRun.prefetchingQuestionKeys = new Set();
                 this.preloadedRun.questions = preparedQuestions;
                 return preparedQuestions;
             },
@@ -2214,7 +2212,6 @@
 
                 if (!hasPreparedQuestions) {
                     this.preloadedRun.prefetchedQuestionKeys = new Set();
-                    this.preloadedRun.prefetchingQuestionKeys = new Set();
                 }
 
                 this.preloadedRun.questions = null;
@@ -2304,88 +2301,45 @@
                     return cached instanceof Promise ? cached : Promise.resolve(cached);
                 }
 
-                const preloadPromise = new Promise((resolve, reject) => {
+                const preloadPromise = new Promise((resolve) => {
                     const image = new Image();
                     let settled = false;
-                    const PRELOAD_TIMEOUT_MS = 4500;
-                    let timeoutId = null;
 
-                    const finishSuccess = () => {
+                    const finish = () => {
                         if (settled) return;
                         settled = true;
-                        if (timeoutId) {
-                            clearTimeout(timeoutId);
-                            timeoutId = null;
-                        }
                         resolve(src);
                     };
 
-                    const finishError = (message = `Image preload failed: ${src}`) => {
-                        if (settled) return;
-                        settled = true;
-                        if (timeoutId) {
-                            clearTimeout(timeoutId);
-                            timeoutId = null;
-                        }
-                        reject(new Error(message));
-                    };
-
-                    image.onload = finishSuccess;
-                    image.onerror = finishError;
+                    image.onload = finish;
+                    image.onerror = finish;
                     image.decoding = 'async';
-                    if ('fetchPriority' in image) {
-                        image.fetchPriority = 'high';
-                    }
-                    timeoutId = setTimeout(() => {
-                        finishError(`Image preload timed out: ${src}`);
-                    }, PRELOAD_TIMEOUT_MS);
                     image.src = src;
 
                     if (typeof image.decode === 'function') {
-                        image.decode().then(finishSuccess).catch(() => {});
+                        image.decode().then(finish).catch(() => {});
                     }
-                })
-                    .then((loadedSrc) => {
-                        if (this.state.processedImageCache[src] === preloadPromise) {
-                            this.state.processedImageCache[src] = loadedSrc;
-                        }
-                        return loadedSrc;
-                    })
-                    .catch((error) => {
-                        if (this.state.processedImageCache[src] === preloadPromise) {
-                            delete this.state.processedImageCache[src];
-                        }
-                        throw error;
-                    });
+                }).then((loadedSrc) => {
+                    this.state.processedImageCache[src] = loadedSrc;
+                    return loadedSrc;
+                });
 
                 this.state.processedImageCache[src] = preloadPromise;
                 return preloadPromise;
             },
 
-            async preloadQuestionAssets(question) {
-                if (!question || !Array.isArray(question.options)) {
-                    return { fulfilledCount: 0, failedCount: 0 };
-                }
+            preloadQuestionAssets(question) {
+                if (!question || !Array.isArray(question.options)) return Promise.resolve();
 
                 const tasks = question.options.map((option) => {
                     const resolvedSrc = this.resolveAssetUrl(option.src);
-                    return ENABLE_CANVAS_BG_REMOVAL
+                    const preloadTask = ENABLE_CANVAS_BG_REMOVAL
                         ? this.getBackgroundRemovedImage(resolvedSrc)
                         : this.preloadImage(resolvedSrc);
+                    return preloadTask.catch(() => null);
                 });
 
-                const results = await Promise.allSettled(tasks);
-                let fulfilledCount = 0;
-                let failedCount = 0;
-                results.forEach((result) => {
-                    if (result.status === 'fulfilled') {
-                        fulfilledCount += 1;
-                    } else {
-                        failedCount += 1;
-                    }
-                });
-
-                return { fulfilledCount, failedCount };
+                return Promise.allSettled(tasks);
             },
 
             prefetchUpcomingQuestionAssets(startIndex, count = 2) {
@@ -2404,35 +2358,13 @@
                 for (let index = safeStart; index < safeEnd; index += 1) {
                     const question = questionDeck[index];
                     const questionKey = this.getQuestionPrefetchKey(question);
-                    if (
-                        questionKey &&
-                        (
-                            this.preloadedRun.prefetchedQuestionKeys.has(questionKey) ||
-                            this.preloadedRun.prefetchingQuestionKeys.has(questionKey)
-                        )
-                    ) {
+                    if (questionKey && this.preloadedRun.prefetchedQuestionKeys.has(questionKey)) {
                         continue;
                     }
                     if (questionKey) {
-                        this.preloadedRun.prefetchingQuestionKeys.add(questionKey);
+                        this.preloadedRun.prefetchedQuestionKeys.add(questionKey);
                     }
-                    void this.preloadQuestionAssets(question)
-                        .then(({ failedCount = 0 } = {}) => {
-                            if (!questionKey) return;
-                            if (failedCount === 0) {
-                                this.preloadedRun.prefetchedQuestionKeys.add(questionKey);
-                            } else {
-                                this.preloadedRun.prefetchedQuestionKeys.delete(questionKey);
-                            }
-                        })
-                        .catch(() => {
-                            if (!questionKey) return;
-                            this.preloadedRun.prefetchedQuestionKeys.delete(questionKey);
-                        })
-                        .finally(() => {
-                            if (!questionKey) return;
-                            this.preloadedRun.prefetchingQuestionKeys.delete(questionKey);
-                        });
+                    void this.preloadQuestionAssets(question);
                 }
             },
 
@@ -2564,8 +2496,6 @@
             renderOptions(question) {
                 const grid = document.getElementById('optionsGrid');
                 const shuffledOptions = this.shuffleArray(question.options);
-                const optionReadyPromises = [];
-                const LOGO_RENDER_TIMEOUT_MS = 3500;
 
                 grid.innerHTML = '';
                 shuffledOptions.forEach((option) => {
@@ -2585,7 +2515,7 @@
                     logoImage.className = 'option-logo';
                     logoImage.alt = option.alt;
                     logoImage.loading = 'eager';
-                    logoImage.decoding = 'sync';
+                    logoImage.decoding = 'async';
                     logoImage.fetchPriority = 'high';
 
                     const fallback = document.createElement('div');
@@ -2593,79 +2523,24 @@
                     fallback.textContent = 'IMAGE';
                     fallback.style.display = 'none';
 
-                    let isLogoStateSettled = false;
-                    let isRevealQueued = false;
-                    let revealTimeoutId = null;
-                    let resolveOptionReady = null;
-                    const optionReadyPromise = new Promise((resolve) => {
-                        resolveOptionReady = resolve;
-                    });
-                    optionReadyPromises.push(optionReadyPromise);
-
-                    const settleOptionReady = () => {
-                        if (!resolveOptionReady) return;
-                        const resolve = resolveOptionReady;
-                        resolveOptionReady = null;
-                        resolve();
-                    };
-
-                    const applyLogoVisibleState = () => {
-                        if (isLogoStateSettled) return;
-                        isLogoStateSettled = true;
-                        if (revealTimeoutId) {
-                            clearTimeout(revealTimeoutId);
-                            revealTimeoutId = null;
-                        }
+                    const revealLogo = () => {
                         media.classList.remove('is-loading');
-                        fallback.style.display = 'none';
-                        logoImage.style.display = '';
                         logoImage.classList.add('is-visible');
-                        settleOptionReady();
                     };
 
                     const showLogoFallback = () => {
-                        if (isLogoStateSettled) return;
-                        isLogoStateSettled = true;
-                        if (revealTimeoutId) {
-                            clearTimeout(revealTimeoutId);
-                            revealTimeoutId = null;
-                        }
                         media.classList.remove('is-loading');
                         logoImage.style.display = 'none';
                         fallback.style.display = 'flex';
-                        settleOptionReady();
-                    };
-
-                    const revealLogo = () => {
-                        if (isLogoStateSettled || isRevealQueued) return;
-                        isRevealQueued = true;
-
-                        const revealAfterPaint = () => {
-                            requestAnimationFrame(() => {
-                                requestAnimationFrame(() => {
-                                    isRevealQueued = false;
-                                    applyLogoVisibleState();
-                                });
-                            });
-                        };
-
-                        if (typeof logoImage.decode === 'function') {
-                            logoImage.decode()
-                                .catch(() => {})
-                                .finally(revealAfterPaint);
-                            return;
-                        }
-
-                        revealAfterPaint();
                     };
 
                     logoImage.addEventListener('load', () => {
                         revealLogo();
                     }, { once: true });
 
-                    logoImage.addEventListener('error', () => {
+                    logoImage.onerror = () => {
                         showLogoFallback();
-                    }, { once: true });
+                    };
 
                     const resolvedSrc = this.resolveAssetUrl(option.src);
                     if (!ENABLE_CANVAS_BG_REMOVAL) {
@@ -2681,13 +2556,8 @@
                             });
                     }
 
-                    revealTimeoutId = setTimeout(() => {
-                        showLogoFallback();
-                    }, LOGO_RENDER_TIMEOUT_MS);
-
                     // Some mobile browsers can serve from cache without reliably firing `load`.
                     requestAnimationFrame(() => {
-                        if (isLogoStateSettled) return;
                         if (logoImage.complete && logoImage.naturalWidth > 0) {
                             revealLogo();
                         } else if (logoImage.complete && logoImage.naturalWidth === 0) {
@@ -2709,9 +2579,9 @@
                     grid.appendChild(card);
                 });
 
-                return Promise.all(optionReadyPromises).then(() => new Promise((resolve) => {
+                return new Promise((resolve) => {
                     requestAnimationFrame(() => resolve());
-                }));
+                });
             },
 
             startTimer() {
