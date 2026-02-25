@@ -2153,10 +2153,11 @@
                 this.state.totalAnswered = 0;
                 this.state.isQuestionLoading = false;
                 this.state.questionLoadToken = 0;
-                this.state.isSavingResult = false;
                 this.state.resultSaved = false;
-                this.state.pendingResultPayload = null;
-                this.state.lastResultSyncKey = '';
+                if (!this.state.isSavingResult) {
+                    this.state.pendingResultPayload = null;
+                    this.state.lastResultSyncKey = '';
+                }
                 this.state.topScoreBeforeRun = null;
                 this.state.attemptId = this.createAttemptId();
                 this.state.gameStartedAtMs = Date.now();
@@ -2195,17 +2196,23 @@
                 }
 
                 const preparedQuestions = this.shuffleArray([...questions]);
+                this.preloadedRun.prefetchedQuestionKeys = new Set();
                 this.preloadedRun.questions = preparedQuestions;
                 return preparedQuestions;
             },
 
             consumePreparedRunQuestions() {
-                const preparedQuestions = (
+                const hasPreparedQuestions =
                     Array.isArray(this.preloadedRun.questions) &&
-                    this.preloadedRun.questions.length > 0
-                )
+                    this.preloadedRun.questions.length > 0;
+
+                const preparedQuestions = hasPreparedQuestions
                     ? this.preloadedRun.questions
                     : this.shuffleArray([...questions]);
+
+                if (!hasPreparedQuestions) {
+                    this.preloadedRun.prefetchedQuestionKeys = new Set();
+                }
 
                 this.preloadedRun.questions = null;
                 return preparedQuestions;
@@ -2516,15 +2523,23 @@
                     fallback.textContent = 'IMAGE';
                     fallback.style.display = 'none';
 
-                    logoImage.addEventListener('load', () => {
+                    const revealLogo = () => {
                         media.classList.remove('is-loading');
                         logoImage.classList.add('is-visible');
-                    }, { once: true });
+                    };
 
-                    logoImage.onerror = () => {
+                    const showLogoFallback = () => {
                         media.classList.remove('is-loading');
                         logoImage.style.display = 'none';
                         fallback.style.display = 'flex';
+                    };
+
+                    logoImage.addEventListener('load', () => {
+                        revealLogo();
+                    }, { once: true });
+
+                    logoImage.onerror = () => {
+                        showLogoFallback();
                     };
 
                     const resolvedSrc = this.resolveAssetUrl(option.src);
@@ -2540,6 +2555,15 @@
                                 logoImage.src = resolvedSrc;
                             });
                     }
+
+                    // Some mobile browsers can serve from cache without reliably firing `load`.
+                    requestAnimationFrame(() => {
+                        if (logoImage.complete && logoImage.naturalWidth > 0) {
+                            revealLogo();
+                        } else if (logoImage.complete && logoImage.naturalWidth === 0) {
+                            showLogoFallback();
+                        }
+                    });
 
                     card.addEventListener('click', () => this.selectAnswer(option.src));
                     card.addEventListener('keydown', (event) => {
@@ -2659,12 +2683,14 @@
                     
                     if (this.state.lives === 0) {
                         this.saveState();
+                        this.syncLiveProgressResult();
                         this.scheduleTransition(() => this.showGameOver(), transitionDelay);
                         return;
                     }
                 }
 
                 this.saveState();
+                this.syncLiveProgressResult();
 
                 // Next question
                 this.scheduleTransition(() => {
@@ -2700,11 +2726,13 @@
 
                 if (this.state.lives === 0) {
                     this.saveState();
+                    this.syncLiveProgressResult();
                     this.scheduleTransition(() => this.showGameOver(), transitionDelay);
                     return;
                 }
 
                 this.saveState();
+                this.syncLiveProgressResult();
 
                 this.scheduleTransition(() => {
                     this.state.currentQuestion++;
@@ -2763,13 +2791,22 @@
                 const durationMs = this.state.gameStartedAtMs
                     ? Math.max(0, Date.now() - this.state.gameStartedAtMs)
                     : 0;
+                const stateAttemptId = (
+                    typeof this.state.attemptId === 'string' &&
+                    this.state.attemptId.trim()
+                )
+                    ? this.state.attemptId.trim()
+                    : '';
                 const submissionAttemptId = (
                     options &&
                     typeof options.attemptId === 'string' &&
                     options.attemptId.trim()
                 )
                     ? options.attemptId.trim()
-                    : this.createAttemptId();
+                    : (stateAttemptId || this.createAttemptId());
+                if (!stateAttemptId) {
+                    this.state.attemptId = submissionAttemptId;
+                }
                 return {
                     playerName: this.state.playerName,
                     playerId: this.state.playerId,
@@ -2785,6 +2822,18 @@
                     updateMode: 'replace',
                     gameVersion: APP_VERSION
                 };
+            },
+
+            syncLiveProgressResult() {
+                if (!this.state.playerName || !this.state.playerId || !this.state.attemptId) {
+                    return;
+                }
+                if (this.state.totalAnswered <= 0) {
+                    return;
+                }
+
+                const payload = this.buildResultPayload('in_progress');
+                void this.saveResult(payload);
             },
 
             buildResultSyncKey(payload) {
@@ -3033,10 +3082,11 @@
                 this.state.isAnswering = false;
                 this.state.isQuestionLoading = false;
                 this.state.questionLoadToken = 0;
-                this.state.isSavingResult = false;
                 this.state.resultSaved = false;
-                this.state.pendingResultPayload = null;
-                this.state.lastResultSyncKey = '';
+                if (!this.state.isSavingResult) {
+                    this.state.pendingResultPayload = null;
+                    this.state.lastResultSyncKey = '';
+                }
                 this.state.topScoreBeforeRun = null;
                 this.state.attemptId = this.createAttemptId();
                 this.state.gameStartedAtMs = Date.now();
@@ -3074,10 +3124,11 @@
                 this.state.isAnswering = false;
                 this.state.isQuestionLoading = false;
                 this.state.questionLoadToken = 0;
-                this.state.isSavingResult = false;
                 this.state.resultSaved = false;
-                this.state.pendingResultPayload = null;
-                this.state.lastResultSyncKey = '';
+                if (!this.state.isSavingResult) {
+                    this.state.pendingResultPayload = null;
+                    this.state.lastResultSyncKey = '';
+                }
                 this.state.topScoreBeforeRun = null;
                 this.state.questions = [];
                 this.state.attemptId = '';

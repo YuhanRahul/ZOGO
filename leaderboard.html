@@ -615,7 +615,7 @@
         function normalizeResult(result) {
             if (!result || typeof result !== 'object') return null;
 
-            const id = parseNumber(result.id);
+            const id = parseNumber(result.id ?? result.resultId);
             if (id <= 0) return null;
 
             const createdAt = typeof result.createdAt === 'string' ? result.createdAt : '';
@@ -794,6 +794,7 @@
         }
 
         function mergeResults(results, replaceExisting = false) {
+            let mergedCount = 0;
             if (replaceExisting) {
                 leaderboardState.resultsById.clear();
             }
@@ -803,9 +804,11 @@
                 if (!normalized) continue;
 
                 leaderboardState.resultsById.set(normalized.id, normalized);
+                mergedCount += 1;
             }
 
             scheduleRender();
+            return mergedCount;
         }
 
         async function loadLeaderboard({ showLoading = false } = {}) {
@@ -862,7 +865,10 @@
                     loadLeaderboard();
                     return;
                 }
-                mergeResults([data.result], false);
+                const mergedCount = mergeResults([data.result], false);
+                if (mergedCount === 0) {
+                    loadLeaderboard();
+                }
             } catch (error) {
                 loadLeaderboard();
             }
